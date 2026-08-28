@@ -3,7 +3,7 @@ set -e
 
 echo "waiting for database..."
 i=0
-until node --input-type=module -e "import postgres from 'postgres'; const s=postgres(process.env.DATABASE_URL,{max:1,connect_timeout:3}); await s\`select 1\`; await s.end();" ; do
+until node --input-type=module -e "import mysql from 'mysql2/promise'; const c=await mysql.createConnection(process.env.DATABASE_URL); await c.query('select 1'); await c.end();" ; do
   i=$((i+1))
   if [ "$i" -gt 40 ]; then
     echo "database not reachable"

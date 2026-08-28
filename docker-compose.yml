@@ -1,25 +1,29 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: mysql:8.4
     network_mode: host
-    command: ["postgres", "-p", "55432"]
+    command:
+      - --port=53306
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     environment:
-      POSTGRES_USER: bongerd
-      POSTGRES_PASSWORD: bongerd
-      POSTGRES_DB: bongerd
+      MYSQL_USER: bongerd
+      MYSQL_PASSWORD: bongerd
+      MYSQL_DATABASE: bongerd
+      MYSQL_ROOT_PASSWORD: bongerd
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bongerd -d bongerd -p 55432"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "53306", "-ubongerd", "-pbongerd"]
       interval: 3s
       timeout: 3s
-      retries: 20
+      retries: 30
 
   web:
     build: .
     network_mode: host
     environment:
-      DATABASE_URL: postgres://bongerd:bongerd@127.0.0.1:55432/bongerd
+      DATABASE_URL: mysql://bongerd:bongerd@127.0.0.1:53306/bongerd
       SESSION_SECRET: local-docker-session-secret-min-32-characters
       COOKIE_SECURE: "false"
       ADMIN_EMAIL: beheer@apotheekdebongerd.nl
@@ -33,4 +37,4 @@ services:
         condition: service_healthy
 
 volumes:
-  pgdata:
+  mysqldata:

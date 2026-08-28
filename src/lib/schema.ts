@@ -1,117 +1,122 @@
 import {
   boolean,
+  char,
   date,
-  integer,
-  pgTable,
+  int,
+  mysqlTable,
   primaryKey,
   text,
   time,
   timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+  varchar,
+} from 'drizzle-orm/mysql-core'
 
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+function uuid(name: string) {
+  return char(name, { length: 36 })
+}
+
+export const users = mysqlTable('users', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
-export const userRoles = pgTable(
+export const userRoles = mysqlTable(
   'user_roles',
   {
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    role: text('role').notNull(),
+    role: varchar('role', { length: 64 }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.role] })],
 )
 
-export const locations = pgTable('locations', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),
-  name: text('name').notNull(),
-  address: text('address').notNull(),
-  postal: text('postal').notNull(),
-  city: text('city').notNull(),
-  phone: text('phone').notNull(),
-  phoneTel: text('phone_tel').notNull(),
-  email: text('email').notNull(),
-  zorgmail: text('zorgmail'),
-  mapsQuery: text('maps_query').notNull(),
-  sortOrder: integer('sort_order').notNull().default(0),
+export const locations = mysqlTable('locations', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  slug: varchar('slug', { length: 64 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  address: varchar('address', { length: 255 }).notNull(),
+  postal: varchar('postal', { length: 32 }).notNull(),
+  city: varchar('city', { length: 128 }).notNull(),
+  phone: varchar('phone', { length: 64 }).notNull(),
+  phoneTel: varchar('phone_tel', { length: 64 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  zorgmail: varchar('zorgmail', { length: 255 }),
+  mapsQuery: varchar('maps_query', { length: 255 }).notNull(),
+  sortOrder: int('sort_order').notNull().default(0),
 })
 
-export const siteContent = pgTable('site_content', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  page: text('page').notNull(),
-  blockKey: text('block_key').notNull(),
-  title: text('title').notNull(),
+export const siteContent = mysqlTable('site_content', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  page: varchar('page', { length: 64 }).notNull(),
+  blockKey: varchar('block_key', { length: 64 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   body: text('body').notNull(),
-  sortOrder: integer('sort_order').notNull().default(0),
+  sortOrder: int('sort_order').notNull().default(0),
 })
 
-export const openingHours = pgTable('opening_hours', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const openingHours = mysqlTable('opening_hours', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   locationId: uuid('location_id')
     .notNull()
     .references(() => locations.id, { onDelete: 'cascade' }),
-  weekday: integer('weekday').notNull(),
+  weekday: int('weekday').notNull(),
   opens: time('opens'),
   closes: time('closes'),
   isClosed: boolean('is_closed').notNull().default(false),
 })
 
-export const openingExceptions = pgTable('opening_exceptions', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const openingExceptions = mysqlTable('opening_exceptions', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   locationId: uuid('location_id').references(() => locations.id, { onDelete: 'cascade' }),
-  date: date('date').notNull(),
+  date: date('date', { mode: 'string' }).notNull(),
   opens: time('opens'),
   closes: time('closes'),
   isClosed: boolean('is_closed').notNull().default(false),
-  label: text('label').notNull(),
+  label: varchar('label', { length: 255 }).notNull(),
 })
 
-export const announcements = pgTable('announcements', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  title: text('title').notNull(),
+export const announcements = mysqlTable('announcements', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: varchar('title', { length: 255 }).notNull(),
   body: text('body').notNull(),
   published: boolean('published').notNull().default(true),
-  sortOrder: integer('sort_order').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  sortOrder: int('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
-export const newsPosts = pgTable('news_posts', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),
-  title: text('title').notNull(),
+export const newsPosts = mysqlTable('news_posts', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  slug: varchar('slug', { length: 191 }).notNull().unique(),
+  title: varchar('title', { length: 255 }).notNull(),
   excerpt: text('excerpt').notNull(),
   body: text('body').notNull(),
   published: boolean('published').notNull().default(true),
-  publishedAt: timestamp('published_at', { withTimezone: true }).defaultNow().notNull(),
+  publishedAt: timestamp('published_at').notNull().defaultNow(),
 })
 
-export const services = pgTable('services', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),
-  title: text('title').notNull(),
+export const services = mysqlTable('services', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  slug: varchar('slug', { length: 191 }).notNull().unique(),
+  title: varchar('title', { length: 255 }).notNull(),
   summary: text('summary').notNull(),
   body: text('body').notNull(),
-  href: text('href'),
-  sortOrder: integer('sort_order').notNull().default(0),
+  href: varchar('href', { length: 512 }),
+  sortOrder: int('sort_order').notNull().default(0),
   published: boolean('published').notNull().default(true),
 })
 
-export const contactSubmissions = pgTable('contact_submissions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull(),
-  phone: text('phone').notNull().default(''),
-  subject: text('subject').notNull(),
+export const contactSubmissions = mysqlTable('contact_submissions', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 64 }).notNull().default(''),
+  subject: varchar('subject', { length: 255 }).notNull(),
   message: text('message').notNull(),
   handled: boolean('handled').notNull().default(false),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
 export type Location = typeof locations.$inferSelect

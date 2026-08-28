@@ -285,47 +285,46 @@ const newsSeed = [
   },
 ]
 
+function isEmpty(value: unknown) {
+  return Number(value) === 0
+}
+
 async function seed() {
   const [{ value: userCount }] = await db.select({ value: count() }).from(users)
 
-  if (userCount === 0) {
-    const [admin] = await db
-      .insert(users)
-      .values({
-        email: ADMIN_EMAIL,
-        passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12),
-      })
-      .returning()
-    if (admin) {
-      await db.insert(userRoles).values({ userId: admin.id, role: 'admin' })
-    }
+  if (isEmpty(userCount)) {
+    const adminId = crypto.randomUUID()
+    await db.insert(users).values({
+      id: adminId,
+      email: ADMIN_EMAIL,
+      passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12),
+    })
+    await db.insert(userRoles).values({ userId: adminId, role: 'admin' })
     console.log(`admin account: ${ADMIN_EMAIL}`)
   }
 
   const [{ value: locCount }] = await db.select({ value: count() }).from(locations)
-  if (locCount === 0) {
+  if (isEmpty(locCount)) {
     for (const loc of locationSeed) {
-      const [row] = await db
-        .insert(locations)
-        .values({
-          slug: loc.slug,
-          name: loc.name,
-          address: loc.address,
-          postal: loc.postal,
-          city: loc.city,
-          phone: loc.phone,
-          phoneTel: loc.phoneTel,
-          email: loc.email,
-          zorgmail: loc.zorgmail,
-          mapsQuery: loc.mapsQuery,
-          sortOrder: loc.sortOrder,
-        })
-        .returning()
-      if (!row) continue
+      const locationId = crypto.randomUUID()
+      await db.insert(locations).values({
+        id: locationId,
+        slug: loc.slug,
+        name: loc.name,
+        address: loc.address,
+        postal: loc.postal,
+        city: loc.city,
+        phone: loc.phone,
+        phoneTel: loc.phoneTel,
+        email: loc.email,
+        zorgmail: loc.zorgmail,
+        mapsQuery: loc.mapsQuery,
+        sortOrder: loc.sortOrder,
+      })
       for (let weekday = 0; weekday <= 6; weekday++) {
         const closed = weekday === 0 || weekday === 6
         await db.insert(openingHours).values({
-          locationId: row.id,
+          locationId,
           weekday,
           opens: closed ? null : '08:00',
           closes: closed ? null : loc.close,
@@ -349,17 +348,17 @@ async function seed() {
   }
 
   const [{ value: contentCount }] = await db.select({ value: count() }).from(siteContent)
-  if (contentCount === 0) {
+  if (isEmpty(contentCount)) {
     await db.insert(siteContent).values(contentSeed)
   }
 
   const [{ value: serviceCount }] = await db.select({ value: count() }).from(services)
-  if (serviceCount === 0) {
+  if (isEmpty(serviceCount)) {
     await db.insert(services).values(serviceSeed)
   }
 
   const [{ value: newsCount }] = await db.select({ value: count() }).from(newsPosts)
-  if (newsCount === 0) {
+  if (isEmpty(newsCount)) {
     await db.insert(newsPosts).values(
       newsSeed.map((post) => ({
         ...post,
@@ -369,7 +368,7 @@ async function seed() {
   }
 
   const [{ value: announcementCount }] = await db.select({ value: count() }).from(announcements)
-  if (announcementCount === 0) {
+  if (isEmpty(announcementCount)) {
     await db.insert(announcements).values({
       title: 'Herhaalrecepten',
       body: 'Vraag herhaalmedicatie aan via MijnGezondheid.net. Voor 12.00 uur aanvragen is de volgende werkdag om 12.00 uur klaar.',
