@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    network_mode: host
+    command: ["postgres", "-p", "55432"]
+    environment:
+      POSTGRES_USER: bongerd
+      POSTGRES_PASSWORD: bongerd
+      POSTGRES_DB: bongerd
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bongerd -d bongerd -p 55432"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    network_mode: host
+    environment:
+      DATABASE_URL: postgres://bongerd:bongerd@127.0.0.1:55432/bongerd
+      SESSION_SECRET: local-docker-session-secret-min-32-characters
+      COOKIE_SECURE: "false"
+      ADMIN_EMAIL: beheer@apotheekdebongerd.nl
+      ADMIN_PASSWORD: BongerdBeheer2026!
+      SITE_URL: http://localhost:3000
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
+  --color-navy: #001689;
+  --color-navy-deep: #00115c;
+  --color-ink: #1b2436;
+  --color-muted: #5b6574;
+  --color-line: #d7dde8;
+  --color-paper: #f5f7fb;
+  --color-sky: #c5cde0;
+  --color-mist: #eef1f7;
+  --color-teal: #2c7a73;
+  --color-mint: #e7f3f1;
+  --color-open: #1f7a4d;
+  --color-closed: #9a3b3b;
+  --color-warn: #8a5a12;
+  --shadow-card: 0 10px 30px -18px rgb(0 22 137 / 0.28);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.65;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-navy);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 80;
+  border-radius: 999px;
+  background: var(--color-navy);
+  color: white;
+  padding: 0.6rem 1rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.orchard-wash {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgb(197 205 224 / 0.55), transparent 28%),
+    radial-gradient(circle at 88% 0%, rgb(231 243 241 / 0.9), transparent 32%),
+    linear-gradient(180deg, #fff 0%, var(--color-paper) 100%);
+}
+
+.prose-site p + p {
+  margin-top: 1rem;
+}
+
+.prose-site a {
+  color: var(--color-navy);
+  font-weight: 600;
+  text-underline-offset: 3px;
+  text-decoration: underline;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
