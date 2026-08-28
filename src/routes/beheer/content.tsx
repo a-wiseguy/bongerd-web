@@ -41,8 +41,14 @@ function ContentAdmin() {
                     }}
                   >
                     <p className="text-sm font-semibold text-muted">{block.blockKey}</p>
-                    <input name="title" defaultValue={block.title} className={`${fieldClass} mt-2`} />
-                    <textarea name="body" defaultValue={block.body} rows={6} className={`${fieldClass} mt-3`} />
+                    <label className="mt-2 grid gap-1">
+                      <span className="text-sm font-semibold text-navy">Titel</span>
+                      <input name="title" defaultValue={block.title} className={fieldClass} />
+                    </label>
+                    <label className="mt-3 grid gap-1">
+                      <span className="text-sm font-semibold text-navy">Tekst</span>
+                      <textarea name="body" defaultValue={block.body} rows={6} className={fieldClass} />
+                    </label>
                     <button type="submit" className={`${btnClass} mt-3`}>
                       Opslaan
                     </button>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { MapPinned, Phone, Repeat } from 'lucide-react'
 import type { Location } from '@/lib/schema'
@@ -6,6 +6,16 @@ import { mapsHref } from '@/lib/format'
 
 export function MobileBar({ locations }: { locations: Location[] }) {
   const [sheet, setSheet] = useState<'call' | 'route' | null>(null)
+  const titleId = useId()
+
+  useEffect(() => {
+    if (!sheet) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSheet(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [sheet])
 
   return (
     <>
@@ -18,6 +28,8 @@ export function MobileBar({ locations }: { locations: Location[] }) {
           <button
             type="button"
             className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-sm font-semibold text-navy"
+            aria-expanded={sheet === 'call'}
+            aria-controls={sheet === 'call' ? 'snel-keuze' : undefined}
             onClick={() => setSheet(sheet === 'call' ? null : 'call')}
           >
             <Phone className="h-5 w-5" aria-hidden />
@@ -26,6 +38,8 @@ export function MobileBar({ locations }: { locations: Location[] }) {
           <button
             type="button"
             className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-sm font-semibold text-navy"
+            aria-expanded={sheet === 'route'}
+            aria-controls={sheet === 'route' ? 'snel-keuze' : undefined}
             onClick={() => setSheet(sheet === 'route' ? null : 'route')}
           >
             <MapPinned className="h-5 w-5" aria-hidden />
@@ -35,6 +49,7 @@ export function MobileBar({ locations }: { locations: Location[] }) {
             to="/diensten"
             hash="herhaalrecepten"
             className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl bg-navy text-sm font-semibold text-white"
+            aria-label="Herhaalrecept"
           >
             <Repeat className="h-5 w-5" aria-hidden />
             Herhaal
@@ -43,8 +58,16 @@ export function MobileBar({ locations }: { locations: Location[] }) {
       </nav>
       {sheet ? (
         <div className="fixed inset-x-0 bottom-20 z-40 px-3 pb-[env(safe-area-inset-bottom)] lg:hidden">
-          <div className="mx-auto max-w-lg rounded-3xl border border-line bg-white p-4 shadow-card">
-            <p className="font-serif text-2xl text-navy">{sheet === 'call' ? 'Bellen' : 'Route'}</p>
+          <div
+            id="snel-keuze"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className="mx-auto max-w-lg rounded-3xl border border-line bg-white p-4 shadow-card"
+          >
+            <p id={titleId} className="font-serif text-2xl text-navy">
+              {sheet === 'call' ? 'Kies een vestiging om te bellen' : 'Kies een vestiging voor de route'}
+            </p>
             <ul className="mt-3 grid gap-2">
               {locations.map((loc) => (
                 <li key={loc.id}>
@@ -54,15 +77,16 @@ export function MobileBar({ locations }: { locations: Location[] }) {
                   >
                     <span>{loc.name}</span>
                     <span className="text-sm font-medium text-muted">
-                      {sheet === 'call' ? loc.phone : 'Kaart'}
+                      {sheet === 'call' ? loc.phone : 'Google Maps'}
                     </span>
+                    {sheet === 'route' ? <span className="sr-only">, opent Google Maps</span> : null}
                   </a>
                 </li>
               ))}
             </ul>
             <button
               type="button"
-              className="mt-3 w-full min-h-12 rounded-2xl text-sm font-semibold text-muted"
+              className="mt-3 w-full min-h-12 rounded-2xl font-semibold text-navy"
               onClick={() => setSheet(null)}
             >
               Sluiten

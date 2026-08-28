@@ -52,13 +52,15 @@ function ContactPage() {
                   className="inline-flex min-h-12 items-center rounded-full bg-navy px-5 font-semibold text-white"
                   href={`tel:${item.location.phoneTel}`}
                 >
+                  <span className="sr-only">Bel {item.location.name}: </span>
                   {item.location.phone}
                 </a>
                 <a
                   className="inline-flex min-h-12 items-center rounded-full border border-line px-5 font-semibold text-navy"
                   href={mapsHref(item.location.mapsQuery)}
                 >
-                  Route
+                  Route {item.location.name}
+                  <span className="sr-only">, opent Google Maps</span>
                 </a>
               </div>
               <p className="mt-3">

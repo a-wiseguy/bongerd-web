@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { OpenBadge, PageHero, Prose } from '@/components/PageHero'
-import { blockMap, heading, text } from '@/lib/format'
+import { blockMap, formatNlDate, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { formatClock, weekdayName } from '@/lib/hours'
 import { seo } from '@/lib/seo'
@@ -42,27 +42,48 @@ function HoursPage() {
               <OpenBadge open={item.status.open} label={item.status.label} detail="" />
             </div>
             <p className="mt-2 text-sm text-muted">{item.status.detail}</p>
-            <ul className="mt-5 grid gap-2">
-              {[1, 2, 3, 4, 5, 6, 0].map((weekday) => {
-                const row = item.hours.find((h) => h.weekday === weekday)
-                const closed = !row || row.isClosed
-                return (
-                  <li key={weekday} className="flex items-center justify-between border-b border-mist py-2 text-[1.05rem]">
-                    <span>{weekdayName(weekday)}</span>
-                    <span className="font-semibold text-navy">
-                      {closed ? 'Gesloten' : `${formatClock(row.opens)}–${formatClock(row.closes)}`}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
+            <table className="mt-5 w-full text-[1.05rem]">
+              <caption className="sr-only">Openingstijden {item.location.name}</caption>
+              <thead>
+                <tr className="border-b border-mist text-left">
+                  <th scope="col" className="py-2 font-semibold text-navy">
+                    Dag
+                  </th>
+                  <th scope="col" className="py-2 text-right font-semibold text-navy">
+                    Tijd
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5, 6, 0].map((weekday) => {
+                  const row = item.hours.find((h) => h.weekday === weekday)
+                  const closed = !row || row.isClosed
+                  return (
+                    <tr key={weekday} className="border-b border-mist">
+                      <th scope="row" className="py-2 font-medium text-ink">
+                        {weekdayName(weekday)}
+                      </th>
+                      <td className="py-2 text-right font-semibold text-navy">
+                        {closed ? (
+                          'Gesloten'
+                        ) : (
+                          <time dateTime={`${formatClock(row.opens)}/${formatClock(row.closes)}`}>
+                            {formatClock(row.opens)}–{formatClock(row.closes)}
+                          </time>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
             {item.exceptions.length > 0 ? (
               <div className="mt-5 rounded-2xl bg-mist p-4 text-sm">
                 <p className="font-semibold text-navy">Afwijkende dagen</p>
                 <ul className="mt-2 grid gap-1 text-muted">
                   {item.exceptions.map((ex) => (
                     <li key={ex.id}>
-                      {ex.date}: {ex.isClosed ? 'gesloten' : `${formatClock(ex.opens)}–${formatClock(ex.closes)}`}
+                      {formatNlDate(ex.date)}: {ex.isClosed ? 'gesloten' : `${formatClock(ex.opens)}–${formatClock(ex.closes)}`}
                       {ex.label ? ` · ${ex.label}` : ''}
                     </li>
                   ))}

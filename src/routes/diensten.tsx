@@ -53,15 +53,16 @@ function ServicesPage() {
                   service.href.startsWith('http') ? (
                     <a
                       href={service.href}
-                      className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy"
+                      className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline"
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                     >
                       Naar de aanvraag
+                      <span className="sr-only">, opent in een nieuw tabblad</span>
                     </a>
                   ) : (
-                    <a href={service.href} className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy">
-                      Verder
+                    <a href={service.href} className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline">
+                      {service.href === '/contact' ? 'Naar contact' : `Meer over ${service.title}`}
                     </a>
                   )
                 ) : null}

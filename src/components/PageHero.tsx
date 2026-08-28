@@ -45,7 +45,7 @@ export function PageHero({
   return (
     <section className="orchard-wash border-b border-line">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        {kicker ? <p className="text-sm font-semibold uppercase tracking-[0.18em] text-navy/70">{kicker}</p> : null}
+        {kicker ? <p className="text-sm font-semibold tracking-wide text-navy">{kicker}</p> : null}
         <h1 className="mt-2 max-w-3xl font-serif text-4xl leading-tight text-navy sm:text-5xl">{title}</h1>
         {lead ? <p className="mt-4 max-w-2xl text-lg text-muted">{lead}</p> : null}
         {image ? (

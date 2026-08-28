@@ -24,6 +24,9 @@ export function AdminShell({
 
   return (
     <div className="min-h-dvh bg-paper">
+      <a className="skip-link" href="#beheer-inhoud">
+        Naar inhoud
+      </a>
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <p className="font-serif text-2xl text-navy">Beheer</p>
@@ -31,7 +34,7 @@ export function AdminShell({
             <span className="hidden text-muted sm:inline">{email}</span>
             <button
               type="button"
-              className="rounded-full border border-line px-4 py-2 font-semibold text-navy"
+              className="min-h-12 rounded-full border border-line px-4 font-semibold text-navy"
               onClick={async () => {
                 await logoutFn()
                 window.location.assign('/beheer/login')
@@ -41,24 +44,30 @@ export function AdminShell({
             </button>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-3 sm:px-6" aria-label="Beheer">
-          {items.map((item) => {
-            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to)
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`shrink-0 rounded-full px-3 py-2 text-sm font-semibold ${
-                  active ? 'bg-navy text-white' : 'text-navy hover:bg-mist'
-                }`}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
+        <nav className="mx-auto max-w-6xl overflow-x-auto px-4 pb-3 sm:px-6" aria-label="Beheer">
+          <ul className="flex gap-1">
+            {items.map((item) => {
+              const active = item.exact ? pathname === item.to : pathname.startsWith(item.to)
+              return (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    aria-current={active ? 'page' : undefined}
+                    className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 py-2 text-sm font-semibold ${
+                      active ? 'bg-navy text-white' : 'text-navy hover:bg-mist'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         </nav>
       </header>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
+      <main id="beheer-inhoud" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {children}
+      </main>
     </div>
   )
 }

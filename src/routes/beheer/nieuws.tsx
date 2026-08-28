@@ -32,9 +32,18 @@ function NewsAdmin() {
         }}
       >
         <h2 className="font-serif text-2xl text-navy">Nieuw bericht</h2>
-        <input name="title" required placeholder="Titel" className={fieldClass} />
-        <textarea name="excerpt" required rows={2} placeholder="Korte samenvatting" className={fieldClass} />
-        <textarea name="body" required rows={6} placeholder="Bericht" className={fieldClass} />
+        <label className="grid gap-1">
+          <span className="text-sm font-semibold text-navy">Titel</span>
+          <input name="title" required className={fieldClass} />
+        </label>
+        <label className="grid gap-1">
+          <span className="text-sm font-semibold text-navy">Korte samenvatting</span>
+          <textarea name="excerpt" required rows={2} className={fieldClass} />
+        </label>
+        <label className="grid gap-1">
+          <span className="text-sm font-semibold text-navy">Bericht</span>
+          <textarea name="body" required rows={6} className={fieldClass} />
+        </label>
         <label className="flex items-center gap-2">
           <input name="published" type="checkbox" defaultChecked />
           Gepubliceerd

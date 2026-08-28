@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
 
@@ -15,36 +15,49 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-white/92 backdrop-blur-md">
       <a className="skip-link" href="#inhoud">
         Naar inhoud
       </a>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex min-h-12 items-center" onClick={() => setOpen(false)}>
+        <Link to="/" className="flex min-h-12 items-center" aria-label="Apotheek De Bongerd" onClick={() => setOpen(false)}>
           <img
             src="/brand/logo.png"
-            alt="Apotheek De Bongerd"
+            alt=""
             width={300}
             height={121}
             className="h-11 w-auto sm:h-14"
           />
         </Link>
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Hoofdmenu">
-          {links.map((link) => {
-            const active = link.to === '/' ? pathname === '/' : pathname.startsWith(link.to)
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`rounded-full px-3.5 py-2 text-[0.95rem] font-semibold tracking-wide ${
-                  active ? 'bg-navy text-white' : 'text-navy hover:bg-mist'
-                }`}
-              >
-                {link.label}
-              </Link>
-            )
-          })}
+        <nav className="hidden lg:block" aria-label="Hoofdmenu">
+          <ul className="flex items-center gap-1">
+            {links.map((link) => (
+              <li key={link.to}>
+                <Link
+                  to={link.to}
+                  activeOptions={link.to === '/' ? { exact: true } : undefined}
+                  activeProps={{ 'aria-current': 'page' }}
+                  className="inline-flex min-h-11 items-center rounded-full px-3.5 py-2 text-[0.95rem] font-semibold tracking-wide text-navy hover:bg-mist aria-[current=page]:bg-navy aria-[current=page]:text-white"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
         <button
           type="button"
@@ -59,17 +72,22 @@ export function SiteHeader() {
       </div>
       {open ? (
         <div id="mobiel-menu" className="border-t border-line bg-white px-4 py-4 lg:hidden">
-          <nav className="grid gap-1" aria-label="Mobiel menu">
-            {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="rounded-2xl px-4 py-3 text-lg font-semibold text-navy hover:bg-mist"
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav aria-label="Mobiel menu">
+            <ul className="grid gap-1">
+              {links.map((link) => (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    activeOptions={link.to === '/' ? { exact: true } : undefined}
+                    activeProps={{ 'aria-current': 'page' }}
+                    className="block rounded-2xl px-4 py-3 text-lg font-semibold text-navy hover:bg-mist aria-[current=page]:bg-mist"
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </nav>
         </div>
       ) : null}

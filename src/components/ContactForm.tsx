@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { submitContact } from '@/server/contact'
 
@@ -14,6 +14,7 @@ const subjects = [
 
 export function ContactForm() {
   const router = useRouter()
+  const statusId = useId()
   const [status, setStatus] = useState<'idle' | 'busy' | 'ok' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
@@ -47,55 +48,73 @@ export function ContactForm() {
       }}
     >
       <label className="grid gap-1">
-        <span className="text-sm font-semibold text-navy">Naam</span>
+        <span className="text-sm font-semibold text-navy">Naam (verplicht)</span>
         <input
           name="name"
           required
           autoComplete="name"
-          className="min-h-12 rounded-2xl border border-line bg-white px-4"
+          aria-required="true"
+          aria-invalid={status === 'error' || undefined}
+          aria-describedby={status !== 'idle' ? statusId : undefined}
+          className="min-h-12 rounded-2xl border border-line bg-white px-4 text-base"
         />
       </label>
       <label className="grid gap-1">
-        <span className="text-sm font-semibold text-navy">E-mail</span>
+        <span className="text-sm font-semibold text-navy">E-mail (verplicht)</span>
         <input
           name="email"
           type="email"
           required
           autoComplete="email"
-          className="min-h-12 rounded-2xl border border-line bg-white px-4"
+          aria-required="true"
+          className="min-h-12 rounded-2xl border border-line bg-white px-4 text-base"
         />
       </label>
       <label className="grid gap-1">
-        <span className="text-sm font-semibold text-navy">Telefoon</span>
+        <span className="text-sm font-semibold text-navy">Telefoon (niet verplicht)</span>
         <input
           name="phone"
           type="tel"
           autoComplete="tel"
-          className="min-h-12 rounded-2xl border border-line bg-white px-4"
+          className="min-h-12 rounded-2xl border border-line bg-white px-4 text-base"
         />
       </label>
       <label className="grid gap-1">
-        <span className="text-sm font-semibold text-navy">Onderwerp</span>
-        <select name="subject" required className="min-h-12 rounded-2xl border border-line bg-white px-4">
+        <span className="text-sm font-semibold text-navy">Onderwerp (verplicht)</span>
+        <select
+          name="subject"
+          required
+          aria-required="true"
+          className="min-h-12 rounded-2xl border border-line bg-white px-4 text-base"
+        >
           {subjects.map((item) => (
             <option key={item}>{item}</option>
           ))}
         </select>
       </label>
       <label className="grid gap-1">
-        <span className="text-sm font-semibold text-navy">Bericht</span>
+        <span className="text-sm font-semibold text-navy">Bericht (verplicht)</span>
         <textarea
           name="message"
           required
           rows={5}
-          className="rounded-2xl border border-line bg-white px-4 py-3"
+          aria-required="true"
+          className="rounded-2xl border border-line bg-white px-4 py-3 text-base"
         />
       </label>
-      <div className="hidden" aria-hidden>
-        <input name="website" tabIndex={-1} autoComplete="off" />
+      <div className="hidden" aria-hidden="true">
+        <label>
+          Website
+          <input name="website" tabIndex={-1} autoComplete="off" />
+        </label>
       </div>
       {status !== 'idle' && message ? (
-        <p className={status === 'ok' ? 'text-open' : 'text-closed'} role="status">
+        <p
+          id={statusId}
+          className={status === 'ok' ? 'text-open' : 'text-closed'}
+          role={status === 'error' ? 'alert' : 'status'}
+          aria-live={status === 'error' ? 'assertive' : 'polite'}
+        >
           {message}
         </p>
       ) : null}

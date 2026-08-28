@@ -29,7 +29,7 @@ function HomePage() {
       <section className="orchard-wash">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-navy/70">
+            <p className="text-sm font-semibold tracking-wide text-navy">
               Kesteren · Ochten · Rhenen
             </p>
             <h1 className="mt-3 font-serif text-5xl leading-[1.05] text-navy sm:text-6xl">
@@ -61,12 +61,9 @@ function HomePage() {
                 <Phone className="h-4 w-4" aria-hidden />
                 Contact
               </Link>
-              <Link
-                to="/contact"
-                className="flex min-h-14 items-center justify-center gap-2 rounded-full bg-mint px-4 font-semibold text-teal"
-              >
+              <Link to="/contact" className="flex min-h-14 items-center justify-center gap-2 rounded-full bg-mint px-4 font-semibold text-teal">
                 <MapPinned className="h-4 w-4" aria-hidden />
-                Route
+                Route en adressen
               </Link>
             </div>
           </div>
@@ -82,9 +79,10 @@ function HomePage() {
                 </div>
                 <p className="mt-3 text-sm text-muted">{item.status.detail}</p>
                 <a
-                  className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy"
+                  className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy underline-offset-4 hover:underline"
                   href={`tel:${item.location.phoneTel}`}
                 >
+                  <span className="sr-only">Bel {item.location.name}: </span>
                   {item.location.phone}
                 </a>
               </article>
@@ -107,7 +105,7 @@ function HomePage() {
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {announcements.map((item) => (
               <article key={item.id} className="rounded-3xl border border-line bg-white p-6">
-                <p className="text-sm font-semibold uppercase tracking-wide text-teal">Mededeling</p>
+                <p className="text-sm font-semibold tracking-wide text-teal">Mededeling</p>
                 <h3 className="mt-2 font-serif text-2xl text-navy">{item.title}</h3>
                 <p className="mt-2 text-muted">{item.body}</p>
               </article>
@@ -123,8 +121,8 @@ function HomePage() {
             <div className="mt-4 max-w-3xl text-sky">
               <Prose text={text(copy, 'home.intro')} />
             </div>
-            <Link to="/over-ons" className="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold">
-              Meer over ons <ArrowRight className="h-4 w-4" />
+            <Link to="/over-ons" className="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold underline underline-offset-4">
+              Meer over ons <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
           <img
@@ -138,8 +136,8 @@ function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="flex items-end justify-between gap-4">
           <h2 className="font-serif text-3xl text-navy">Diensten</h2>
-          <Link to="/diensten" className="font-semibold text-navy">
-            Alles
+          <Link to="/diensten" className="min-h-11 font-semibold text-navy underline-offset-4 hover:underline">
+            Alle diensten
           </Link>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -166,8 +164,8 @@ function HomePage() {
         <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
           <div className="flex items-end justify-between">
             <h2 className="font-serif text-3xl text-navy">Nieuws</h2>
-            <Link to="/nieuws" className="font-semibold text-navy">
-              Archief
+            <Link to="/nieuws" className="min-h-11 font-semibold text-navy underline-offset-4 hover:underline">
+              Al het nieuws
             </Link>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
@@ -198,6 +196,7 @@ function HomePage() {
               className="flex min-h-16 items-center justify-between rounded-3xl bg-mist px-5 font-semibold text-navy"
             >
               Route {item.location.name}
+              <span className="sr-only">, opent Google Maps</span>
               <Clock3 className="h-4 w-4" aria-hidden />
             </a>
           ))}

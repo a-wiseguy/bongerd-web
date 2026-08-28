@@ -62,7 +62,7 @@ function RootComponent() {
       ) : (
         <div className="min-h-dvh">
           <SiteHeader />
-          <main id="inhoud">
+          <main id="inhoud" tabIndex={-1}>
             <Outlet />
           </main>
           <SiteFooter locations={locations} />

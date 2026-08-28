@@ -6,8 +6,10 @@ export function SiteFooter({ locations }: { locations: Location[] }) {
     <footer className="mt-16 border-t border-line bg-navy text-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
         {locations.map((loc) => (
-          <div key={loc.id}>
-            <p className="font-serif text-2xl">{loc.name}</p>
+          <section key={loc.id} aria-labelledby={`footer-${loc.slug}`}>
+            <h2 id={`footer-${loc.slug}`} className="font-serif text-2xl">
+              {loc.name}
+            </h2>
             <p className="mt-3 text-sky">
               {loc.address}
               <br />
@@ -15,6 +17,7 @@ export function SiteFooter({ locations }: { locations: Location[] }) {
             </p>
             <p className="mt-3">
               <a className="font-semibold underline decoration-sky/60 underline-offset-4" href={`tel:${loc.phoneTel}`}>
+                <span className="sr-only">Bel {loc.name}: </span>
                 {loc.phone}
               </a>
             </p>
@@ -23,7 +26,7 @@ export function SiteFooter({ locations }: { locations: Location[] }) {
                 {loc.email}
               </a>
             </p>
-          </div>
+          </section>
         ))}
       </div>
       <div className="border-t border-white/15">
