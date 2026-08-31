@@ -33,8 +33,8 @@ function LoginPage() {
               email: String(data.get('email') ?? ''),
               password: String(data.get('password') ?? ''),
             },
-          })
-          if (result?.error) {
+          }).catch(() => ({ error: 'Inloggen mislukt. Probeer het opnieuw.' as const }))
+          if ('error' in result && result.error) {
             setError(result.error)
             setBusy(false)
             return

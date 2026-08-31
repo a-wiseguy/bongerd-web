@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 
 const COOKIE = 'bongerd_session'
 const WEEK = 60 * 60 * 24 * 7
+const SESSION_VERSION = 1
 
 function secret() {
   const value = process.env.SESSION_SECRET
@@ -19,14 +20,16 @@ function sign(payload: string) {
 export type SessionUser = { id: string; email: string }
 
 export function setSession(user: SessionUser) {
-  const payload = Buffer.from(JSON.stringify(user)).toString('base64url')
+  const payload = Buffer.from(
+    JSON.stringify({ ...user, v: SESSION_VERSION, exp: Math.floor(Date.now() / 1000) + WEEK }),
+  ).toString('base64url')
   const token = `${payload}.${sign(payload)}`
   setCookie(COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
     maxAge: WEEK,
-    secure: process.env.COOKIE_SECURE === 'true',
+    secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
   })
 }
 
@@ -46,9 +49,14 @@ export function readSession(): SessionUser | null {
   const b = Buffer.from(expected)
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null
   try {
-    const user = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as SessionUser
-    if (!user?.id || !user?.email) return null
-    return user
+    const user = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as SessionUser & {
+      v?: number
+      exp?: number
+    }
+    if (!user?.id || !user?.email || user.v !== SESSION_VERSION || !user.exp || user.exp <= Math.floor(Date.now() / 1000)) {
+      return null
+    }
+    return { id: user.id, email: user.email }
   } catch {
     return null
   }
