@@ -12,7 +12,7 @@ export const getAdminContent = createServerFn({ method: 'GET' }).handler(async (
 })
 
 export const saveContentBlock = createServerFn({ method: 'POST' })
-  .validator(z.object({ id: z.uuid(), title: z.string().min(1), body: z.string().min(1) }))
+  .validator(z.object({ id: z.uuid(), title: z.string().trim().min(1).max(255), body: z.string().trim().min(1).max(20000) }))
   .handler(async ({ data }) => {
     const { saveContentBlockImpl } = await import('./admin.server')
     return saveContentBlockImpl(data)
@@ -27,8 +27,8 @@ export const saveOpeningHour = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid(),
-      opens: z.string().nullable(),
-      closes: z.string().nullable(),
+      opens: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
+      closes: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
       isClosed: z.boolean(),
     }),
   )
@@ -42,11 +42,11 @@ export const saveException = createServerFn({ method: 'POST' })
     z.object({
       id: z.uuid().optional(),
       locationId: z.uuid().nullable(),
-      date: z.string().min(8),
-      opens: z.string().nullable(),
-      closes: z.string().nullable(),
+      date: z.iso.date(),
+      opens: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
+      closes: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
       isClosed: z.boolean(),
-      label: z.string().min(1),
+      label: z.string().trim().min(1).max(255),
     }),
   )
   .handler(async ({ data }) => {
@@ -70,8 +70,8 @@ export const saveAnnouncement = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().min(1),
-      body: z.string().min(1),
+      title: z.string().trim().min(1).max(255),
+      body: z.string().trim().min(1).max(20000),
       published: z.boolean(),
     }),
   )
@@ -96,11 +96,11 @@ export const saveNews = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().min(1),
-      excerpt: z.string().min(1),
-      body: z.string().min(1),
+      title: z.string().trim().min(1).max(255),
+      excerpt: z.string().trim().min(1).max(5000),
+      body: z.string().trim().min(1).max(20000),
       published: z.boolean(),
-      slug: z.string().optional(),
+      slug: z.string().trim().max(191).optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -124,10 +124,10 @@ export const saveService = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().min(1),
-      summary: z.string().min(1),
-      body: z.string().min(1),
-      href: z.string().optional().nullable(),
+      title: z.string().trim().min(1).max(255),
+      summary: z.string().trim().min(1).max(5000),
+      body: z.string().trim().min(1).max(20000),
+      href: z.string().trim().max(512).refine((value) => value === '' || value.startsWith('/') || /^https:\/\//i.test(value), 'Gebruik een intern pad of een https-link.').optional().nullable(),
       published: z.boolean(),
       sortOrder: z.number().int(),
     }),

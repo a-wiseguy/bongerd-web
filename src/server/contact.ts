@@ -5,7 +5,7 @@ export const submitContact = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       name: z.string().trim().min(2, 'Vul uw naam in.').max(120),
-      email: z.email('Vul een geldig e-mailadres in.'),
+      email: z.email('Vul een geldig e-mailadres in.').transform((value) => value.trim().toLowerCase()),
       phone: z.string().trim().max(40).optional().default(''),
       subject: z.string().trim().min(2, 'Kies een onderwerp.').max(120),
       message: z.string().trim().min(10, 'Schrijf een kort bericht.').max(4000),

@@ -80,6 +80,10 @@ function RootDocument({
   children: ReactNode
   jsonLd: unknown
 }) {
+  const jsonLdScript = JSON.stringify(jsonLd).replace(/[<>&]/g, (character) =>
+    ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026' })[character]!,
+  )
+
   return (
     <html lang="nl">
       <head>
@@ -89,7 +93,7 @@ function RootDocument({
         {children}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript }}
         />
         <Scripts />
       </body>

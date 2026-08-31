@@ -2,11 +2,19 @@ import { db } from '@/lib/db'
 import { contactSubmissions } from '@/lib/schema'
 
 const hits = new Map<string, { n: number; t: number }>()
+const WINDOW = 15 * 60 * 1000
+const MAX_KEYS = 10_000
 
 function limited(key: string) {
   const now = Date.now()
   const prev = hits.get(key)
-  if (!prev || now - prev.t > 15 * 60 * 1000) {
+  if (!prev || now - prev.t > WINDOW) {
+    if (hits.size >= MAX_KEYS) {
+      for (const [entryKey, entry] of hits) {
+        if (now - entry.t > WINDOW) hits.delete(entryKey)
+      }
+      if (hits.size >= MAX_KEYS) return true
+    }
     hits.set(key, { n: 1, t: now })
     return false
   }
