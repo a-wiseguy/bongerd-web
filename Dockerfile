@@ -1,7 +1,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 
 FROM deps AS build
 COPY . .
@@ -11,7 +11,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 ENV NODE_ENV=production
 COPY --from=build /app/.output ./.output
 COPY drizzle.config.ts ./

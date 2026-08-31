@@ -13,8 +13,14 @@ import {
   users,
 } from './schema'
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'beheer@apotheekdebongerd.nl'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'BongerdBeheer2026!'
+function requiredEnv(name: string) {
+  const value = process.env[name]
+  if (!value) throw new Error(`${name} ontbreekt`)
+  return value
+}
+
+const ADMIN_EMAIL = requiredEnv('ADMIN_EMAIL').trim().toLowerCase()
+const ADMIN_PASSWORD = requiredEnv('ADMIN_PASSWORD')
 
 const locationSeed = [
   {
@@ -290,7 +296,7 @@ function isEmpty(value: unknown) {
 }
 
 async function seed() {
-  const [{ value: userCount }] = await db.select({ value: count() }).from(users)
+  const [{ value: userCount } = { value: 0 }] = await db.select({ value: count() }).from(users)
 
   if (isEmpty(userCount)) {
     const adminId = crypto.randomUUID()
@@ -303,7 +309,7 @@ async function seed() {
     console.log(`admin account: ${ADMIN_EMAIL}`)
   }
 
-  const [{ value: locCount }] = await db.select({ value: count() }).from(locations)
+  const [{ value: locCount } = { value: 0 }] = await db.select({ value: count() }).from(locations)
   if (isEmpty(locCount)) {
     for (const loc of locationSeed) {
       const locationId = crypto.randomUUID()
@@ -347,17 +353,17 @@ async function seed() {
     }
   }
 
-  const [{ value: contentCount }] = await db.select({ value: count() }).from(siteContent)
+  const [{ value: contentCount } = { value: 0 }] = await db.select({ value: count() }).from(siteContent)
   if (isEmpty(contentCount)) {
     await db.insert(siteContent).values(contentSeed)
   }
 
-  const [{ value: serviceCount }] = await db.select({ value: count() }).from(services)
+  const [{ value: serviceCount } = { value: 0 }] = await db.select({ value: count() }).from(services)
   if (isEmpty(serviceCount)) {
     await db.insert(services).values(serviceSeed)
   }
 
-  const [{ value: newsCount }] = await db.select({ value: count() }).from(newsPosts)
+  const [{ value: newsCount } = { value: 0 }] = await db.select({ value: count() }).from(newsPosts)
   if (isEmpty(newsCount)) {
     await db.insert(newsPosts).values(
       newsSeed.map((post) => ({
@@ -367,7 +373,7 @@ async function seed() {
     )
   }
 
-  const [{ value: announcementCount }] = await db.select({ value: count() }).from(announcements)
+  const [{ value: announcementCount } = { value: 0 }] = await db.select({ value: count() }).from(announcements)
   if (isEmpty(announcementCount)) {
     await db.insert(announcements).values({
       title: 'Herhaalrecepten',

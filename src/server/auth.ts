@@ -8,7 +8,7 @@ export const getAdminUser = createServerFn({ method: 'GET' }).handler(async () =
 })
 
 export const loginFn = createServerFn({ method: 'POST' })
-  .validator(z.object({ email: z.email(), password: z.string().min(1) }))
+  .validator(z.object({ email: z.email().transform((value) => value.trim().toLowerCase()), password: z.string().min(1).max(256) }))
   .handler(async ({ data }) => {
     const { loginImpl } = await import('./auth.server')
     const result = await loginImpl(data)

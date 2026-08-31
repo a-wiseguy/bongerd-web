@@ -7,14 +7,14 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_USER: bongerd
-      MYSQL_PASSWORD: bongerd
-      MYSQL_DATABASE: bongerd
-      MYSQL_ROOT_PASSWORD: bongerd
+      MYSQL_USER: ${MYSQL_USER:-bongerd}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-bongerd}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     volumes:
       - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "53306", "-ubongerd", "-pbongerd"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 53306 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
       interval: 3s
       timeout: 3s
       retries: 30
@@ -23,12 +23,12 @@ services:
     build: .
     network_mode: host
     environment:
-      DATABASE_URL: mysql://bongerd:bongerd@127.0.0.1:53306/bongerd
-      SESSION_SECRET: local-docker-session-secret-min-32-characters
-      COOKIE_SECURE: "false"
-      ADMIN_EMAIL: beheer@apotheekdebongerd.nl
-      ADMIN_PASSWORD: BongerdBeheer2026!
-      SITE_URL: http://localhost:3000
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"

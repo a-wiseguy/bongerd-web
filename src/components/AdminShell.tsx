@@ -47,7 +47,7 @@ export function AdminShell({
         <nav className="mx-auto max-w-6xl overflow-x-auto px-4 pb-3 sm:px-6" aria-label="Beheer">
           <ul className="flex gap-1">
             {items.map((item) => {
-              const active = item.exact ? pathname === item.to : pathname.startsWith(item.to)
+              const active = 'exact' in item ? pathname === item.to : pathname.startsWith(item.to)
               return (
                 <li key={item.to}>
                   <Link

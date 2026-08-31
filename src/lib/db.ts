@@ -1,8 +1,8 @@
-import mysql from 'mysql2/promise'
+import mysql, { type Pool } from 'mysql2/promise'
 import { drizzle } from 'drizzle-orm/mysql2'
 import * as schema from './schema'
 
-type Db = ReturnType<typeof drizzle<typeof schema, 'default'>>
+type Db = ReturnType<typeof drizzle<typeof schema, Pool>>
 
 let instance: Db | null = null
 

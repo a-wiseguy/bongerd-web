@@ -10,3 +10,4 @@ dist
 drizzle
 routeTree.gen.ts
 src/routeTree.gen.ts
+.hidden/
