@@ -65,7 +65,7 @@ function RootComponent() {
           <main id="inhoud" tabIndex={-1}>
             <Outlet />
           </main>
-          <SiteFooter locations={locations} />
+          <SiteFooter />
           <MobileBar locations={locations} />
         </div>
       )}

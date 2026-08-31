@@ -94,7 +94,7 @@ function HoursPage() {
           </article>
         ))}
       </div>
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+      <section id="dienstapotheek" className="mx-auto max-w-6xl scroll-mt-24 px-4 pb-12 sm:px-6">
         <div className="grid overflow-hidden rounded-[1.8rem] bg-navy text-white lg:grid-cols-2">
           <div className="p-8">
             <h2 className="font-serif text-3xl">{heading(copy, 'openingstijden.dienst', 'Buiten openingstijden')}</h2>
