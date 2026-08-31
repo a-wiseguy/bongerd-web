@@ -72,7 +72,7 @@ const contentSeed = [
     page: 'home',
     blockKey: 'hero',
     title: 'Zorg om de hoek',
-    body: 'Apotheek De Bongerd zit bij u in de buurt. Korte lijnen, een vast team en persoonlijke service in Kesteren, Ochten en Rhenen.',
+    body: 'Apotheek De Bongerd zit bij u om de hoek. Korte lijnen en een persoonlijke, snelle service staan centraal.',
     sortOrder: 1,
   },
   {
