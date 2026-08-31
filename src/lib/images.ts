@@ -28,6 +28,17 @@ const serviceMap: Record<string, { src: string; alt: string }> = {
   gesprek: photos.john,
 }
 
-export function serviceImage(slug: string) {
+export function serviceImage(slug: string, override?: { src?: string | null; alt?: string | null }) {
+  if (override?.src) {
+    return { src: override.src, alt: override.alt || serviceMap[slug]?.alt || photos.interior.alt }
+  }
   return serviceMap[slug] ?? photos.interior
+}
+
+export function newsImage(
+  post: { imageUrl?: string | null; imageAlt?: string | null },
+  fallback: { src: string; alt: string },
+) {
+  if (post.imageUrl) return { src: post.imageUrl, alt: post.imageAlt || fallback.alt }
+  return fallback
 }

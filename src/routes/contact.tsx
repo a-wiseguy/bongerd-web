@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ContactForm } from '@/components/ContactForm'
 import { OpenBadge, PageHero, Prose } from '@/components/PageHero'
-import { blockMap, heading, mapsHref, text } from '@/lib/format'
+import { blockImage, blockMap, heading, mapsHref, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getHoursBundle, getPageBlocks } from '@/server/public'
@@ -24,6 +24,7 @@ export const Route = createFileRoute('/contact')({
 function ContactPage() {
   const { blocks, hours } = Route.useLoaderData()
   const copy = blockMap(blocks)
+  const hero = blockImage(copy, 'contact.intro', photos.storefront)
 
   return (
     <div>
@@ -31,8 +32,8 @@ function ContactPage() {
         kicker="Bereikbaarheid"
         title={heading(copy, 'contact.intro', 'Contact')}
         lead={text(copy, 'contact.intro')}
-        image={photos.storefront.src}
-        imageAlt={photos.storefront.alt}
+        image={hero.src}
+        imageAlt={hero.alt}
       />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-4">

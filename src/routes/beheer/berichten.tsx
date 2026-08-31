@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { AdminIndexedPage } from '@/components/AdminPageIndex'
 import { btnClass, ghostBtn } from '@/components/AdminShell'
 import { formatNlDate } from '@/lib/format'
 import { getAdminMessages, setMessageHandled } from '@/server/admin'
@@ -11,9 +12,13 @@ export const Route = createFileRoute('/beheer/berichten')({
 function MessagesAdmin() {
   const items = Route.useLoaderData()
   const router = useRouter()
+  const indexItems = items.map((item) => ({
+    id: `bericht-${item.id}`,
+    label: item.subject || item.name || 'Bericht',
+  }))
 
   return (
-    <div>
+    <AdminIndexedPage items={indexItems}>
       <h1 className="font-serif text-4xl text-navy">Berichten</h1>
       <p className="mt-2 text-muted">Alleen zichtbaar voor ingelogde beheerders.</p>
       <ul className="mt-6 grid gap-4">
@@ -21,7 +26,8 @@ function MessagesAdmin() {
         {items.map((item) => (
           <li
             key={item.id}
-            className={`rounded-[1.5rem] border p-5 ${item.handled ? 'border-line bg-mist' : 'border-line bg-white'}`}
+            id={`bericht-${item.id}`}
+            className={`scroll-mt-6 rounded-[1.5rem] border p-5 ${item.handled ? 'border-line bg-mist' : 'border-line bg-white'}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -47,6 +53,6 @@ function MessagesAdmin() {
           </li>
         ))}
       </ul>
-    </div>
+    </AdminIndexedPage>
   )
 }

@@ -1,3 +1,5 @@
+import { toSafeHtml } from '@/lib/sanitize'
+
 export function Photo({
   src,
   alt,
@@ -47,7 +49,12 @@ export function PageHero({
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         {kicker ? <p className="text-sm font-semibold tracking-wide text-navy">{kicker}</p> : null}
         <h1 className="mt-2 max-w-3xl font-serif text-4xl leading-tight text-navy sm:text-5xl">{title}</h1>
-        {lead ? <p className="mt-4 max-w-2xl text-lg text-muted">{lead}</p> : null}
+        {lead ? (
+          <div
+            className="prose-site prose-lead mt-4 max-w-2xl text-lg text-muted"
+            dangerouslySetInnerHTML={{ __html: toSafeHtml(lead) }}
+          />
+        ) : null}
         {image ? (
           <img
             src={image}
@@ -62,10 +69,6 @@ export function PageHero({
 
 export function Prose({ text }: { text: string }) {
   return (
-    <div className="prose-site max-w-3xl">
-      {text.split(/\n{2,}/).map((p) => (
-        <p key={p.slice(0, 40)}>{p}</p>
-      ))}
-    </div>
+    <div className="prose-site max-w-3xl" dangerouslySetInnerHTML={{ __html: toSafeHtml(text) }} />
   )
 }

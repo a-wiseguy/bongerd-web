@@ -15,6 +15,8 @@ done
 echo "applying schema..."
 ./node_modules/.bin/drizzle-kit push --force
 
+mkdir -p "${UPLOAD_DIR:-./data/uploads}"
+
 echo "seeding..."
 ./node_modules/.bin/tsx src/lib/seed.ts
 

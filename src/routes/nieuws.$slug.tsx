@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
 import { formatNlDate } from '@/lib/format'
-import { photos } from '@/lib/images'
+import { newsImage, photos } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getNewsBySlug } from '@/server/public'
 
@@ -22,18 +22,18 @@ export const Route = createFileRoute('/nieuws/$slug')({
 
 function NewsDetail() {
   const post = Route.useLoaderData()
+  const photo = newsImage(post, photos.storefront)
   return (
     <div>
       <PageHero
         kicker={formatNlDate(post.publishedAt)}
         title={post.title}
         lead={post.excerpt}
-        image={photos.storefront.src}
-        imageAlt={photos.storefront.alt}
+        image={photo.src}
+        imageAlt={photo.alt}
       />
       <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <div className="overflow-hidden rounded-[1.8rem] border border-line bg-white">
-          <img src={photos.interior.src} alt={photos.interior.alt} className="h-48 w-full object-cover sm:h-64" />
           <div className="p-6 sm:p-8">
             <Prose text={post.body} />
           </div>

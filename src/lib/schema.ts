@@ -54,6 +54,8 @@ export const siteContent = mysqlTable('site_content', {
   blockKey: varchar('block_key', { length: 64 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   body: text('body').notNull(),
+  imageUrl: varchar('image_url', { length: 512 }),
+  imageAlt: varchar('image_alt', { length: 255 }),
   sortOrder: int('sort_order').notNull().default(0),
 })
 
@@ -93,6 +95,8 @@ export const newsPosts = mysqlTable('news_posts', {
   title: varchar('title', { length: 255 }).notNull(),
   excerpt: text('excerpt').notNull(),
   body: text('body').notNull(),
+  imageUrl: varchar('image_url', { length: 512 }),
+  imageAlt: varchar('image_alt', { length: 255 }),
   published: boolean('published').notNull().default(true),
   publishedAt: timestamp('published_at').notNull().defaultNow(),
 })
@@ -103,6 +107,8 @@ export const services = mysqlTable('services', {
   title: varchar('title', { length: 255 }).notNull(),
   summary: text('summary').notNull(),
   body: text('body').notNull(),
+  imageUrl: varchar('image_url', { length: 512 }),
+  imageAlt: varchar('image_alt', { length: 255 }),
   href: varchar('href', { length: 512 }),
   sortOrder: int('sort_order').notNull().default(0),
   published: boolean('published').notNull().default(true),

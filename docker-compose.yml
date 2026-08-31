@@ -29,12 +29,16 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
       SITE_URL: ${SITE_URL:-http://localhost:3000}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/data/uploads}
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
+    volumes:
+      - uploads:/app/data/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   mysqldata:
+  uploads:

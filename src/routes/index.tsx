@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowRight, Clock3, MapPinned, Phone, Repeat } from 'lucide-react'
 import { OpenBadge, Photo, Prose } from '@/components/PageHero'
 import { blockMap, heading, mapsHref, text } from '@/lib/format'
-import { photos, serviceImage } from '@/lib/images'
+import { newsImage, photos, serviceImage } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getHomeData } from '@/server/public'
 
@@ -35,9 +35,9 @@ function HomePage() {
             <h1 className="mt-3 font-serif text-5xl leading-[1.05] text-navy sm:text-6xl">
               {heading(copy, 'home.hero', 'Zorg om de hoek')}
             </h1>
-            <p className="mt-5 max-w-xl text-xl text-muted">
-              {text(copy, 'home.hero')}
-            </p>
+            <div className="mt-5 max-w-xl text-xl text-muted">
+              <Prose text={text(copy, 'home.hero')} />
+            </div>
             <div className="mt-6">
               <OpenBadge
                 open={anyOpen}
@@ -107,7 +107,9 @@ function HomePage() {
               <article key={item.id} className="rounded-3xl border border-line bg-white p-6">
                 <p className="text-sm font-semibold tracking-wide text-teal">Mededeling</p>
                 <h3 className="mt-2 font-serif text-2xl text-navy">{item.title}</h3>
-                <p className="mt-2 text-muted">{item.body}</p>
+                <div className="mt-2 text-muted">
+                  <Prose text={item.body} />
+                </div>
               </article>
             ))}
           </div>
@@ -142,7 +144,7 @@ function HomePage() {
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => {
-            const photo = serviceImage(service.slug)
+            const photo = serviceImage(service.slug, { src: service.imageUrl, alt: service.imageAlt })
             return (
             <a
               key={service.id}
@@ -169,20 +171,23 @@ function HomePage() {
             </Link>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {news.map((post) => (
+            {news.map((post) => {
+              const photo = newsImage(post, photos.orchard)
+              return (
               <Link
                 key={post.id}
                 to="/nieuws/$slug"
                 params={{ slug: post.slug }}
                 className="overflow-hidden rounded-3xl border border-line bg-white"
               >
-                <img src={photos.orchard.src} alt="" className="h-36 w-full object-cover" />
+                <img src={photo.src} alt="" className="h-36 w-full object-cover" />
                 <div className="p-6">
                   <h3 className="font-serif text-2xl text-navy">{post.title}</h3>
                   <p className="mt-2 text-muted">{post.excerpt}</p>
                 </div>
               </Link>
-            ))}
+              )
+            })}
           </div>
         </section>
       ) : null}

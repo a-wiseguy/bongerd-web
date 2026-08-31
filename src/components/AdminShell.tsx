@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { logoutFn } from '@/server/auth'
 
 const items = [
@@ -19,9 +19,6 @@ export function AdminShell({
   email: string
   children: ReactNode
 }) {
-  const router = useRouter()
-  const pathname = router.state.location.pathname
-
   return (
     <div className="min-h-dvh bg-paper">
       <a className="skip-link" href="#beheer-inhoud">
@@ -46,22 +43,18 @@ export function AdminShell({
         </div>
         <nav className="mx-auto max-w-6xl overflow-x-auto px-4 pb-3 sm:px-6" aria-label="Beheer">
           <ul className="flex gap-1">
-            {items.map((item) => {
-              const active = 'exact' in item ? pathname === item.to : pathname.startsWith(item.to)
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    aria-current={active ? 'page' : undefined}
-                    className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 py-2 text-sm font-semibold ${
-                      active ? 'bg-navy text-white' : 'text-navy hover:bg-mist'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
+            {items.map((item) => (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  activeOptions={'exact' in item ? { exact: true } : undefined}
+                  activeProps={{ 'aria-current': 'page' }}
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 py-2 text-sm font-semibold text-navy hover:bg-mist aria-[current=page]:bg-navy aria-[current=page]:text-white"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
       </header>

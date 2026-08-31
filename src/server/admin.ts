@@ -1,5 +1,27 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import { htmlLimits, limits } from '@/lib/limits'
+import { plainTextLength } from '@/lib/sanitize'
+
+const titleSchema = z.string().trim().min(1).max(limits.title)
+const imageUrlSchema = z
+  .string()
+  .trim()
+  .max(512)
+  .refine((v) => v === '' || v.startsWith('/uploads/') || v.startsWith('/images/'), 'Ongeldige afbeeldings-URL')
+  .optional()
+  .nullable()
+const imageAltSchema = z.string().trim().max(limits.imageAlt).optional().nullable()
+
+function richText(maxText: number, maxHtml: number) {
+  return z
+    .string()
+    .trim()
+    .min(1)
+    .max(maxHtml)
+    .refine((v) => plainTextLength(v) >= 1, 'Tekst is verplicht.')
+    .refine((v) => plainTextLength(v) <= maxText, `Tekst mag max. ${maxText} tekens zijn.`)
+}
 
 export const getAdminDashboard = createServerFn({ method: 'GET' }).handler(async () => {
   const { getAdminDashboardImpl } = await import('./admin.server')
@@ -12,7 +34,15 @@ export const getAdminContent = createServerFn({ method: 'GET' }).handler(async (
 })
 
 export const saveContentBlock = createServerFn({ method: 'POST' })
-  .validator(z.object({ id: z.uuid(), title: z.string().trim().min(1).max(255), body: z.string().trim().min(1).max(20000) }))
+  .validator(
+    z.object({
+      id: z.uuid(),
+      title: titleSchema,
+      body: richText(limits.contentBody, htmlLimits.contentBody),
+      imageUrl: imageUrlSchema,
+      imageAlt: imageAltSchema,
+    }),
+  )
   .handler(async ({ data }) => {
     const { saveContentBlockImpl } = await import('./admin.server')
     return saveContentBlockImpl(data)
@@ -70,8 +100,8 @@ export const saveAnnouncement = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().trim().min(1).max(255),
-      body: z.string().trim().min(1).max(20000),
+      title: titleSchema,
+      body: richText(limits.announcementBody, htmlLimits.announcementBody),
       published: z.boolean(),
     }),
   )
@@ -96,9 +126,11 @@ export const saveNews = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().trim().min(1).max(255),
-      excerpt: z.string().trim().min(1).max(5000),
-      body: z.string().trim().min(1).max(20000),
+      title: titleSchema,
+      excerpt: z.string().trim().min(1).max(limits.newsExcerpt),
+      body: richText(limits.newsBody, htmlLimits.newsBody),
+      imageUrl: imageUrlSchema,
+      imageAlt: imageAltSchema,
       published: z.boolean(),
       slug: z.string().trim().max(191).optional(),
     }),
@@ -124,10 +156,18 @@ export const saveService = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: z.uuid().optional(),
-      title: z.string().trim().min(1).max(255),
-      summary: z.string().trim().min(1).max(5000),
-      body: z.string().trim().min(1).max(20000),
-      href: z.string().trim().max(512).refine((value) => value === '' || value.startsWith('/') || /^https:\/\//i.test(value), 'Gebruik een intern pad of een https-link.').optional().nullable(),
+      title: titleSchema,
+      summary: z.string().trim().min(1).max(limits.serviceSummary),
+      body: richText(limits.serviceBody, htmlLimits.serviceBody),
+      imageUrl: imageUrlSchema,
+      imageAlt: imageAltSchema,
+      href: z
+        .string()
+        .trim()
+        .max(512)
+        .refine((value) => value === '' || value.startsWith('/') || /^https:\/\//i.test(value), 'Gebruik een intern pad of een https-link.')
+        .optional()
+        .nullable(),
       published: z.boolean(),
       sortOrder: z.number().int(),
     }),
@@ -154,4 +194,23 @@ export const setMessageHandled = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { setMessageHandledImpl } = await import('./admin.server')
     return setMessageHandledImpl(data)
+  })
+
+export const uploadImage = createServerFn({ method: 'POST' })
+  .validator((data) => {
+    if (!(data instanceof FormData)) throw new Error('Expected FormData')
+    const file = data.get('file')
+    if (!(file instanceof File)) throw new Error('Geen bestand gekozen.')
+    return { file }
+  })
+  .handler(async ({ data }) => {
+    const { uploadImageImpl } = await import('./admin.server')
+    return uploadImageImpl(data.file)
+  })
+
+export const deleteUploadedImage = createServerFn({ method: 'POST' })
+  .validator(z.object({ url: z.string().trim().min(1).max(512) }))
+  .handler(async ({ data }) => {
+    const { deleteUploadedImageImpl } = await import('./admin.server')
+    return deleteUploadedImageImpl(data.url)
   })

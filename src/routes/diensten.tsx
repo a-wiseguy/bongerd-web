@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
-import { blockMap, heading, text } from '@/lib/format'
+import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos, serviceImage } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getPageBlocks, getPublishedServices } from '@/server/public'
@@ -23,6 +23,7 @@ export const Route = createFileRoute('/diensten')({
 function ServicesPage() {
   const { blocks, services } = Route.useLoaderData()
   const copy = blockMap(blocks)
+  const hero = blockImage(copy, 'diensten.intro', photos.delivery)
 
   return (
     <div>
@@ -30,12 +31,12 @@ function ServicesPage() {
         kicker="Wat wij voor u doen"
         title={heading(copy, 'diensten.intro', 'Diensten')}
         lead={text(copy, 'diensten.intro')}
-        image={photos.delivery.src}
-        imageAlt={photos.delivery.alt}
+        image={hero.src}
+        imageAlt={hero.alt}
       />
       <div className="mx-auto grid max-w-6xl gap-5 px-4 py-10 sm:px-6 md:grid-cols-2">
         {services.map((service) => {
-          const photo = serviceImage(service.slug)
+          const photo = serviceImage(service.slug, { src: service.imageUrl, alt: service.imageAlt })
           return (
             <article
               id={service.slug}

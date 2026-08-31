@@ -1,17 +1,38 @@
-export function blockMap(blocks: { page: string; blockKey: string; title: string; body: string }[]) {
-  const map: Record<string, { title: string; body: string }> = {}
+export type ContentBlock = {
+  page: string
+  blockKey: string
+  title: string
+  body: string
+  imageUrl?: string | null
+  imageAlt?: string | null
+}
+
+export function blockMap(blocks: ContentBlock[]) {
+  const map: Record<string, ContentBlock> = {}
   for (const block of blocks) {
-    map[`${block.page}.${block.blockKey}`] = { title: block.title, body: block.body }
+    map[`${block.page}.${block.blockKey}`] = block
   }
   return map
 }
 
-export function text(map: Record<string, { title: string; body: string }>, key: string, fallback = '') {
+export function text(map: Record<string, ContentBlock>, key: string, fallback = '') {
   return map[key]?.body || fallback
 }
 
-export function heading(map: Record<string, { title: string; body: string }>, key: string, fallback = '') {
+export function heading(map: Record<string, ContentBlock>, key: string, fallback = '') {
   return map[key]?.title || fallback
+}
+
+export function blockImage(
+  map: Record<string, ContentBlock>,
+  key: string,
+  fallback: { src: string; alt: string },
+) {
+  const block = map[key]
+  if (block?.imageUrl) {
+    return { src: block.imageUrl, alt: block.imageAlt || fallback.alt }
+  }
+  return fallback
 }
 
 export function paragraphs(value: string) {

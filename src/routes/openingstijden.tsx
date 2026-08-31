@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { OpenBadge, PageHero, Prose } from '@/components/PageHero'
-import { blockMap, formatNlDate, heading, text } from '@/lib/format'
+import { blockImage, blockMap, formatNlDate, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { formatClock, weekdayName } from '@/lib/hours'
 import { seo } from '@/lib/seo'
@@ -24,6 +24,7 @@ export const Route = createFileRoute('/openingstijden')({
 function HoursPage() {
   const { blocks, hours } = Route.useLoaderData()
   const copy = blockMap(blocks)
+  const hero = blockImage(copy, 'openingstijden.intro', photos.storefront)
 
   return (
     <div>
@@ -31,8 +32,8 @@ function HoursPage() {
         kicker="Wanneer kunt u terecht"
         title={heading(copy, 'openingstijden.intro', 'Openingstijden')}
         lead={text(copy, 'openingstijden.intro')}
-        image={photos.storefront.src}
-        imageAlt={photos.storefront.alt}
+        image={hero.src}
+        imageAlt={hero.alt}
       />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-3">
         {hours.map((item) => (

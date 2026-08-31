@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { AdminIndexedPage } from '@/components/AdminPageIndex'
 import { btnClass, fieldClass, ghostBtn } from '@/components/AdminShell'
 import { weekdayName } from '@/lib/hours'
 import { deleteException, getAdminHours, saveException, saveOpeningHour } from '@/server/admin'
@@ -11,13 +12,24 @@ export const Route = createFileRoute('/beheer/openingstijden')({
 function HoursAdmin() {
   const { locations, hours, exceptions } = Route.useLoaderData()
   const router = useRouter()
+  const indexItems = [
+    ...locations.map((loc) => ({
+      id: `locatie-${loc.id}`,
+      label: loc.name,
+    })),
+    { id: 'afwijkende-dagen', label: 'Afwijkende dagen' },
+  ]
 
   return (
-    <div>
+    <AdminIndexedPage items={indexItems}>
       <h1 className="font-serif text-4xl text-navy">Openingstijden</h1>
       <div className="mt-8 grid gap-8">
         {locations.map((loc) => (
-          <section key={loc.id} className="rounded-[1.5rem] border border-line bg-white p-5">
+          <section
+            key={loc.id}
+            id={`locatie-${loc.id}`}
+            className="scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
+          >
             <h2 className="font-serif text-3xl text-navy">{loc.name}</h2>
             <div className="mt-4 grid gap-3">
               {[1, 2, 3, 4, 5, 6, 0].map((weekday) => {
@@ -59,7 +71,7 @@ function HoursAdmin() {
         ))}
       </div>
 
-      <section className="mt-10">
+      <section id="afwijkende-dagen" className="mt-10 scroll-mt-6">
         <h2 className="font-serif text-3xl text-navy">Afwijkende dagen</h2>
         <form
           className="mt-4 grid gap-3 rounded-[1.5rem] border border-line bg-white p-5 md:grid-cols-2"
@@ -122,6 +134,6 @@ function HoursAdmin() {
           ))}
         </ul>
       </section>
-    </div>
+    </AdminIndexedPage>
   )
 }

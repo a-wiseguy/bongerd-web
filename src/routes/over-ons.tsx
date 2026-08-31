@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
-import { blockMap, heading, text } from '@/lib/format'
+import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getLocations, getPageBlocks } from '@/server/public'
@@ -23,6 +23,7 @@ export const Route = createFileRoute('/over-ons')({
 function OverOns() {
   const { blocks, locations } = Route.useLoaderData()
   const copy = blockMap(blocks)
+  const hero = blockImage(copy, 'over-ons.intro', photos.orchard)
   const keys = ['intro', 'team', 'kwaliteit', 'inschrijven', 'huisregels', 'klachten'] as const
 
   return (
@@ -31,8 +32,8 @@ function OverOns() {
         kicker="Onze apotheek"
         title={heading(copy, 'over-ons.intro', 'Over ons')}
         lead={text(copy, 'over-ons.intro')}
-        image={photos.orchard.src}
-        imageAlt={photos.orchard.alt}
+        image={hero.src}
+        imageAlt={hero.alt}
       />
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_18rem]">
         <div className="grid gap-8">

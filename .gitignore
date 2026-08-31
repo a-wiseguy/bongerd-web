@@ -10,4 +10,6 @@ dist
 drizzle
 routeTree.gen.ts
 src/routeTree.gen.ts
-.hidden/
+data/uploads/*
+!data/uploads/.gitkeep
+

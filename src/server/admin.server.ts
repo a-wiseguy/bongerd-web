@@ -12,12 +12,25 @@ import {
   siteContent,
 } from '@/lib/schema'
 import { slugify } from '@/lib/format'
+import { sanitizeForStorage } from '@/lib/sanitize'
+import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uploads'
 import { getAdminUserImpl } from './auth.server'
 
 async function requireAdmin() {
   const user = await getAdminUserImpl()
   if (!user) throw redirect({ to: '/beheer/login' })
   return user
+}
+
+function cleanImage(url?: string | null) {
+  const value = url?.trim() || null
+  if (!value) return null
+  if (value.startsWith('/uploads/') || value.startsWith('/images/')) return value
+  return null
+}
+
+function cleanAlt(alt?: string | null) {
+  return alt?.trim() || null
 }
 
 export async function getAdminDashboardImpl() {
@@ -41,9 +54,28 @@ export async function getAdminContentImpl() {
   return db.select().from(siteContent).orderBy(asc(siteContent.page), asc(siteContent.sortOrder))
 }
 
-export async function saveContentBlockImpl(data: { id: string; title: string; body: string }) {
+export async function saveContentBlockImpl(data: {
+  id: string
+  title: string
+  body: string
+  imageUrl?: string | null
+  imageAlt?: string | null
+}) {
   await requireAdmin()
-  await db.update(siteContent).set({ title: data.title, body: data.body }).where(eq(siteContent.id, data.id))
+  const [existing] = await db.select().from(siteContent).where(eq(siteContent.id, data.id)).limit(1)
+  const nextUrl = cleanImage(data.imageUrl)
+  if (existing && existing.imageUrl && existing.imageUrl !== nextUrl) {
+    await deleteManagedUpload(existing.imageUrl)
+  }
+  await db
+    .update(siteContent)
+    .set({
+      title: data.title,
+      body: sanitizeForStorage(data.body),
+      imageUrl: nextUrl,
+      imageAlt: cleanAlt(data.imageAlt),
+    })
+    .where(eq(siteContent.id, data.id))
   return { ok: true }
 }
 
@@ -117,15 +149,16 @@ export async function saveAnnouncementImpl(data: {
   published: boolean
 }) {
   await requireAdmin()
+  const body = sanitizeForStorage(data.body)
   if (data.id) {
     await db
       .update(announcements)
-      .set({ title: data.title, body: data.body, published: data.published })
+      .set({ title: data.title, body, published: data.published })
       .where(eq(announcements.id, data.id))
   } else {
     await db.insert(announcements).values({
       title: data.title,
-      body: data.body,
+      body,
       published: data.published,
     })
   }
@@ -148,18 +181,28 @@ export async function saveNewsImpl(data: {
   title: string
   excerpt: string
   body: string
+  imageUrl?: string | null
+  imageAlt?: string | null
   published: boolean
   slug?: string
 }) {
   await requireAdmin()
   const slug = slugify(data.slug || data.title)
+  const body = sanitizeForStorage(data.body)
+  const nextUrl = cleanImage(data.imageUrl)
   if (data.id) {
+    const [existing] = await db.select().from(newsPosts).where(eq(newsPosts.id, data.id)).limit(1)
+    if (existing?.imageUrl && existing.imageUrl !== nextUrl) {
+      await deleteManagedUpload(existing.imageUrl)
+    }
     await db
       .update(newsPosts)
       .set({
         title: data.title,
         excerpt: data.excerpt,
-        body: data.body,
+        body,
+        imageUrl: nextUrl,
+        imageAlt: cleanAlt(data.imageAlt),
         published: data.published,
         slug,
       })
@@ -168,7 +211,9 @@ export async function saveNewsImpl(data: {
     await db.insert(newsPosts).values({
       title: data.title,
       excerpt: data.excerpt,
-      body: data.body,
+      body,
+      imageUrl: nextUrl,
+      imageAlt: cleanAlt(data.imageAlt),
       published: data.published,
       slug,
     })
@@ -178,6 +223,8 @@ export async function saveNewsImpl(data: {
 
 export async function deleteNewsImpl(id: string) {
   await requireAdmin()
+  const [existing] = await db.select().from(newsPosts).where(eq(newsPosts.id, id)).limit(1)
+  await deleteManagedUpload(existing?.imageUrl)
   await db.delete(newsPosts).where(eq(newsPosts.id, id))
   return { ok: true }
 }
@@ -192,19 +239,29 @@ export async function saveServiceImpl(data: {
   title: string
   summary: string
   body: string
+  imageUrl?: string | null
+  imageAlt?: string | null
   href?: string | null
   published: boolean
   sortOrder: number
 }) {
   await requireAdmin()
   const slug = slugify(data.title)
+  const body = sanitizeForStorage(data.body)
+  const nextUrl = cleanImage(data.imageUrl)
   if (data.id) {
+    const [existing] = await db.select().from(services).where(eq(services.id, data.id)).limit(1)
+    if (existing?.imageUrl && existing.imageUrl !== nextUrl) {
+      await deleteManagedUpload(existing.imageUrl)
+    }
     await db
       .update(services)
       .set({
         title: data.title,
         summary: data.summary,
-        body: data.body,
+        body,
+        imageUrl: nextUrl,
+        imageAlt: cleanAlt(data.imageAlt),
         href: data.href || null,
         published: data.published,
         sortOrder: data.sortOrder,
@@ -214,7 +271,9 @@ export async function saveServiceImpl(data: {
     await db.insert(services).values({
       title: data.title,
       summary: data.summary,
-      body: data.body,
+      body,
+      imageUrl: nextUrl,
+      imageAlt: cleanAlt(data.imageAlt),
       href: data.href || null,
       published: data.published,
       sortOrder: data.sortOrder,
@@ -226,6 +285,8 @@ export async function saveServiceImpl(data: {
 
 export async function deleteServiceImpl(id: string) {
   await requireAdmin()
+  const [existing] = await db.select().from(services).where(eq(services.id, id)).limit(1)
+  await deleteManagedUpload(existing?.imageUrl)
   await db.delete(services).where(eq(services.id, id))
   return { ok: true }
 }
@@ -238,5 +299,20 @@ export async function getAdminMessagesImpl() {
 export async function setMessageHandledImpl(data: { id: string; handled: boolean }) {
   await requireAdmin()
   await db.update(contactSubmissions).set({ handled: data.handled }).where(eq(contactSubmissions.id, data.id))
+  return { ok: true }
+}
+
+export async function uploadImageImpl(file: File) {
+  await requireAdmin()
+  const url = await storeUpload(file)
+  return { url }
+}
+
+export async function deleteUploadedImageImpl(url: string) {
+  await requireAdmin()
+  if (!isManagedUploadUrl(url)) {
+    throw new Error('Alleen geüploade bestanden kunnen worden verwijderd.')
+  }
+  await deleteManagedUpload(url)
   return { ok: true }
 }

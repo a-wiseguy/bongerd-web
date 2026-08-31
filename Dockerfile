@@ -18,6 +18,6 @@ COPY drizzle.config.ts ./
 COPY src ./src
 COPY tsconfig.json ./
 COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+RUN mkdir -p data/uploads && chmod +x docker-entrypoint.sh
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]

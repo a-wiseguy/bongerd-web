@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
-import { blockMap, heading, text } from '@/lib/format'
+import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { seo } from '@/lib/seo'
 import { getPageBlocks } from '@/server/public'
@@ -19,13 +19,14 @@ export const Route = createFileRoute('/privacy')({
 function PrivacyPage() {
   const blocks = Route.useLoaderData()
   const copy = blockMap(blocks)
+  const hero = blockImage(copy, 'privacy.intro', photos.privacy)
   return (
     <div>
       <PageHero
         kicker="Gegevens"
         title={heading(copy, 'privacy.intro', 'Privacy')}
-        image={photos.privacy.src}
-        imageAlt={photos.privacy.alt}
+        image={hero.src}
+        imageAlt={hero.alt}
       />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <div className="overflow-hidden rounded-[1.8rem] border border-line bg-white">
