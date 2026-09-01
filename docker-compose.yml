@@ -1,9 +1,7 @@
 services:
   db:
     image: mysql:8.4
-    network_mode: host
     command:
-      - --port=53306
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     environment:
@@ -14,20 +12,25 @@ services:
     volumes:
       - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 53306 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3306 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
       interval: 3s
       timeout: 3s
       retries: 30
+    # mysql stays on the compose network only (no host ports)
 
   web:
     build: .
-    network_mode: host
+    ports:
+      - "3000:3000"
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      # always reach mysql via compose service hostname
+      DATABASE_URL: mysql://${MYSQL_USER:-bongerd}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-bongerd}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      RESET_ADMIN_PASSWORD: ${RESET_ADMIN_PASSWORD:-false}
       SITE_URL: ${SITE_URL:-http://localhost:3000}
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/data/uploads}
       NODE_ENV: production

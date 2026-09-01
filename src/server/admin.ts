@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { htmlLimits, limits } from '@/lib/limits'
 import { plainTextLength } from '@/lib/sanitize'
+import { isValidServiceHref } from '@/lib/serviceHref'
 
 const titleSchema = z.string().trim().min(1).max(limits.title)
 const imageUrlSchema = z
@@ -165,7 +166,7 @@ export const saveService = createServerFn({ method: 'POST' })
         .string()
         .trim()
         .max(512)
-        .refine((value) => value === '' || value.startsWith('/') || /^https:\/\//i.test(value), 'Gebruik een intern pad of een https-link.')
+        .refine(isValidServiceHref, 'Gebruik een intern pad (/…) of een https-link.')
         .optional()
         .nullable(),
       published: z.boolean(),

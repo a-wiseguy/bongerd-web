@@ -1,0 +1,6 @@
+# local npm + mysql in docker: publish mysql to the host
+# usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up db -d
+services:
+  db:
+    ports:
+      - "3306:3306"

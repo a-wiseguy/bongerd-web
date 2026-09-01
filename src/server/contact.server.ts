@@ -1,8 +1,10 @@
+import { clientIp } from '@/lib/clientIp'
 import { db } from '@/lib/db'
 import { contactSubmissions } from '@/lib/schema'
 
 const hits = new Map<string, { n: number; t: number }>()
 const WINDOW = 15 * 60 * 1000
+const LIMIT = 8
 const MAX_KEYS = 10_000
 
 function limited(key: string) {
@@ -19,7 +21,7 @@ function limited(key: string) {
     return false
   }
   prev.n += 1
-  return prev.n > 8
+  return prev.n > LIMIT
 }
 
 export async function submitContactImpl(data: {
@@ -31,7 +33,9 @@ export async function submitContactImpl(data: {
   website?: string
 }) {
   if (data.website) return { ok: true as const }
-  if (limited(data.email.toLowerCase())) {
+  const email = data.email.toLowerCase()
+  const ip = clientIp()
+  if (limited(`ip:${ip}`) || limited(`email:${email}`)) {
     return { error: 'Te veel berichten. Probeer het later opnieuw.' }
   }
   await db.insert(contactSubmissions).values({

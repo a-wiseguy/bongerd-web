@@ -3,6 +3,7 @@ import { PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos, serviceImage } from '@/lib/images'
 import { seo } from '@/lib/seo'
+import { serviceHrefKind } from '@/lib/serviceHref'
 import { getPageBlocks, getPublishedServices } from '@/server/public'
 
 export const Route = createFileRoute('/diensten')({
@@ -37,6 +38,7 @@ function ServicesPage() {
       <div className="mx-auto grid max-w-6xl gap-5 px-4 py-10 sm:px-6 md:grid-cols-2">
         {services.map((service) => {
           const photo = serviceImage(service.slug, { src: service.imageUrl, alt: service.imageAlt })
+          const hrefKind = service.href ? serviceHrefKind(service.href) : 'invalid'
           return (
             <article
               id={service.slug}
@@ -50,22 +52,21 @@ function ServicesPage() {
                 <div className="mt-4 text-muted">
                   <Prose text={service.body} />
                 </div>
-                {service.href ? (
-                  service.href.startsWith('http') ? (
-                    <a
-                      href={service.href}
-                      className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Naar de aanvraag
-                      <span className="sr-only">, opent in een nieuw tabblad</span>
-                    </a>
-                  ) : (
-                    <a href={service.href} className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline">
-                      {service.href === '/contact' ? 'Naar contact' : `Meer over ${service.title}`}
-                    </a>
-                  )
+                {hrefKind === 'external' ? (
+                  <a
+                    href={service.href!}
+                    className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Naar de aanvraag
+                    <span className="sr-only">, opent in een nieuw tabblad</span>
+                  </a>
+                ) : null}
+                {hrefKind === 'internal' ? (
+                  <a href={service.href!} className="mt-5 inline-flex min-h-12 items-center font-semibold text-navy underline-offset-4 hover:underline">
+                    {service.href === '/contact' ? 'Naar contact' : `Meer over ${service.title}`}
+                  </a>
                 ) : null}
               </div>
             </article>

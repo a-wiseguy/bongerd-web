@@ -44,10 +44,10 @@ npm install
 cp .env.example .env
 ```
 
-3. Start MySQL (bijv. via Docker Compose, alleen de database):
+3. Start MySQL via Compose (bridge network; poort 3306 alleen via de dev-override):
 
 ```bash
-docker compose up db -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up db -d
 ```
 
 4. Pas het database-schema toe en seed initiële content:
@@ -65,15 +65,19 @@ npm run dev
 
 De site draait op [http://localhost:3000](http://localhost:3000). De beheeromgeving is bereikbaar via `/beheer`.
 
+`DATABASE_URL` voor lokale npm wijst naar `127.0.0.1:3306`. De `web`-service in Compose bouwt zelf `mysql://…@db:3306/…` en publiceert MySQL niet op de host.
+
 ## Omgevingsvariabelen
 
 | Variabele | Beschrijving |
 |---|---|
-| `DATABASE_URL` | MySQL connection string |
+| `DATABASE_URL` | MySQL connection string (lokaal npm); Compose-web gebruikt `@db:3306` |
 | `SESSION_SECRET` | Minimaal 32 willekeurige tekens voor sessies |
-| `COOKIE_SECURE` | `true` in productie (HTTPS), `false` lokaal |
-| `ADMIN_EMAIL` | E-mailadres van het initiële beheeraccount |
-| `ADMIN_PASSWORD` | Wachtwoord van het initiële beheeraccount |
+| `COOKIE_SECURE` | `true` achter HTTPS in productie; `false` voor plain HTTP / lokaal Docker |
+| `TRUST_PROXY` | `true` alleen achter een vertrouwde reverse proxy (dan wordt `X-Forwarded-For` gebruikt) |
+| `ADMIN_EMAIL` | E-mailadres van het initiële beheeraccount (alleen nodig bij eerste seed / reset) |
+| `ADMIN_PASSWORD` | Wachtwoord bij eerste seed of `RESET_ADMIN_PASSWORD=true`; daarna weglaten/roteren |
+| `RESET_ADMIN_PASSWORD` | Alleen `true` om het adminwachtwoord opnieuw te zetten; standaard `false` |
 | `SITE_URL` | Publieke URL van de site (bijv. `http://localhost:3000`) |
 
 Zie `.env.example` voor een volledig voorbeeld.
@@ -87,18 +91,23 @@ Zie `.env.example` voor een volledig voorbeeld.
 | `npm start` | Start de productieserver (na build) |
 | `npm run db:push` | Synchroniseer database-schema |
 | `npm run db:seed` | Vul initiële content en admin-account |
+| `npm test` | Kleine unit checks (o.a. service-href validatie) |
 
 ## Productie (Docker)
 
-1. Vul `.env` in met productiewaarden (`COOKIE_SECURE=true`, sterk wachtwoord, juiste `SITE_URL`).
+1. Vul `.env` in met productiewaarden (`COOKIE_SECURE=true` achter HTTPS, sterke wachtwoorden, juiste `SITE_URL`). Zet `ADMIN_PASSWORD` voor de eerste start; daarna kun je die uit `.env` halen (entrypoint unset ook na seed). Laat `RESET_ADMIN_PASSWORD` op `false`.
 
-2. Start alles:
+2. Start alles (bridge network; alleen poort 3000 naar de host, MySQL intern op `db:3306`):
 
 ```bash
 docker compose up -d --build
 ```
 
-Bij opstarten worden automatisch het schema toegepast, de database gevuld en de webserver gestart op poort 3000.
+Bij bestaande containers met oude host-networking: herschep na `docker compose down` (volumes blijven behouden tenzij je `-v` gebruikt).
+
+Bij opstarten worden schema en seed toegepast; daarna start de webserver als non-root op poort 3000.
+
+**Let op:** `drizzle-kit` en `tsx` zitten nog in de productie-image voor boot-time migrate/seed. CI runt `npm audit --audit-level=high` (prod deps); matige transitive issues via drizzle-kit blokkeren CI niet.
 
 ## Projectstructuur
 

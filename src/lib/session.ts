@@ -29,7 +29,7 @@ export function setSession(user: SessionUser) {
     sameSite: 'lax',
     path: '/',
     maxAge: WEEK,
-    secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+    secure: process.env.COOKIE_SECURE === 'true',
   })
 }
 

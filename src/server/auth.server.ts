@@ -1,19 +1,21 @@
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
+import { clientIp } from '@/lib/clientIp'
 import { db } from '@/lib/db'
 import { userRoles, users } from '@/lib/schema'
 import { clearSession, readSession, setSession, type SessionUser } from '@/lib/session'
 
+// valid bcrypt so compare cost matches real hashes when user missing
 const DUMMY =
-  '$2b$12$C6UzMDM.H6dfI/f/IKcEe.OjzQe.OjzQe.OjzQe.OjzQe.OjzQeO'
+  '$2b$12$Z9JmuVn1bG0ifm7perCIKelf/icEL1LlV97bl3BYMsl.QhBC/Abs2'
 const LOGIN_WINDOW = 15 * 60 * 1000
 const LOGIN_LIMIT = 10
 const MAX_LOGIN_KEYS = 10_000
 const loginAttempts = new Map<string, { count: number; startedAt: number }>()
 
-function tooManyLoginAttempts(email: string) {
+function tooManyLoginAttempts(key: string) {
   const now = Date.now()
-  const previous = loginAttempts.get(email)
+  const previous = loginAttempts.get(key)
   if (!previous || now - previous.startedAt > LOGIN_WINDOW) {
     if (loginAttempts.size >= MAX_LOGIN_KEYS) {
       for (const [entryKey, entry] of loginAttempts) {
@@ -21,7 +23,7 @@ function tooManyLoginAttempts(email: string) {
       }
       if (loginAttempts.size >= MAX_LOGIN_KEYS) return true
     }
-    loginAttempts.set(email, { count: 1, startedAt: now })
+    loginAttempts.set(key, { count: 1, startedAt: now })
     return false
   }
   previous.count += 1
@@ -42,7 +44,9 @@ export async function getAdminUserImpl(): Promise<SessionUser | null> {
 
 export async function loginImpl(data: { email: string; password: string }) {
   const email = data.email.trim().toLowerCase()
-  if (tooManyLoginAttempts(email)) {
+  const ip = clientIp()
+  const rateKey = `${ip}|${email}`
+  if (tooManyLoginAttempts(rateKey)) {
     return { error: 'Te veel pogingen. Probeer het later opnieuw.' as const }
   }
   const [user] = await db
@@ -63,7 +67,7 @@ export async function loginImpl(data: { email: string; password: string }) {
   if (role?.role !== 'admin') {
     return { error: 'Dit account heeft geen toegang tot beheer.' as const }
   }
-  loginAttempts.delete(email)
+  loginAttempts.delete(rateKey)
   setSession({ id: user.id, email: user.email })
   return { ok: true as const }
 }

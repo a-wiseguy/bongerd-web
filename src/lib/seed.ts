@@ -19,9 +19,6 @@ function requiredEnv(name: string) {
   return value
 }
 
-const ADMIN_EMAIL = requiredEnv('ADMIN_EMAIL').trim().toLowerCase()
-const ADMIN_PASSWORD = requiredEnv('ADMIN_PASSWORD')
-
 const locationSeed = [
   {
     slug: 'kesteren',
@@ -297,16 +294,32 @@ function isEmpty(value: unknown) {
 
 async function seed() {
   const [{ value: userCount } = { value: 0 }] = await db.select({ value: count() }).from(users)
+  const resetAdmin = process.env.RESET_ADMIN_PASSWORD === 'true'
 
   if (isEmpty(userCount)) {
+    const adminEmail = requiredEnv('ADMIN_EMAIL').trim().toLowerCase()
+    const adminPassword = requiredEnv('ADMIN_PASSWORD')
     const adminId = crypto.randomUUID()
     await db.insert(users).values({
       id: adminId,
-      email: ADMIN_EMAIL,
-      passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12),
+      email: adminEmail,
+      passwordHash: await bcrypt.hash(adminPassword, 12),
     })
     await db.insert(userRoles).values({ userId: adminId, role: 'admin' })
-    console.log(`admin account: ${ADMIN_EMAIL}`)
+    console.log(`admin account: ${adminEmail}`)
+  } else if (resetAdmin) {
+    const adminEmail = requiredEnv('ADMIN_EMAIL').trim().toLowerCase()
+    const adminPassword = requiredEnv('ADMIN_PASSWORD')
+    const existing = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1)
+    if (existing[0]) {
+      await db
+        .update(users)
+        .set({ passwordHash: await bcrypt.hash(adminPassword, 12) })
+        .where(eq(users.id, existing[0].id))
+      console.log(`admin password reset: ${adminEmail}`)
+    } else {
+      throw new Error(`RESET_ADMIN_PASSWORD gezet maar ${adminEmail} bestaat niet`)
+    }
   }
 
   const [{ value: locCount } = { value: 0 }] = await db.select({ value: count() }).from(locations)
@@ -381,15 +394,6 @@ async function seed() {
       published: true,
       sortOrder: 1,
     })
-  }
-
-  // keep admin password in sync for local docker resets without wiping data
-  const existing = await db.select().from(users).where(eq(users.email, ADMIN_EMAIL)).limit(1)
-  if (existing[0] && process.env.RESET_ADMIN_PASSWORD === 'true') {
-    await db
-      .update(users)
-      .set({ passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12) })
-      .where(eq(users.id, existing[0].id))
   }
 }
 

@@ -1,0 +1,20 @@
+name: Security audit
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # audit production deps only; drizzle-kit (used at container boot) can pull
+      # moderate transitive noise (e.g. esbuild) that we do not force-fix
+      - run: npm audit --omit=dev --audit-level=high
