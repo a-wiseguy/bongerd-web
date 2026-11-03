@@ -1,0 +1,18 @@
+services:
+  web:
+    # Caddy reaches the application over its shared Docker network; no host
+    # port needs to be exposed in production.
+    ports: !reset []
+    networks:
+      default:
+      caddy_web:
+        aliases:
+          - abongerd-web
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped
+
+networks:
+  caddy_web:
+    external: true
