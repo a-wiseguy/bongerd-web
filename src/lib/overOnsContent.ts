@@ -1,4 +1,5 @@
 import { paragraphs } from '@/lib/format'
+import { linkifyCommonFragment, listItemsFromHtml } from '@/lib/cmsRichText'
 import { looksLikeHtml, sanitizeHtml, toSafeHtml } from '@/lib/sanitize'
 
 export type OverOnsSectionKey = 'team' | 'kwaliteit' | 'inschrijven' | 'huisregels' | 'klachten'
@@ -15,19 +16,7 @@ export function overOnsSectionId(key: OverOnsSectionKey) {
   return `over-ons-${key}`
 }
 
-export function listItemsFromHtml(value: string): string[] {
-  const html = toSafeHtml(value)
-  const matches = [...html.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)]
-  return matches
-    .map((m) =>
-      m[1]
-        .replace(/<br\s*\/?>/gi, ' ')
-        .replace(/<[^>]+>/g, '')
-        .replace(/\s+/g, ' ')
-        .trim(),
-    )
-    .filter(Boolean)
-}
+export { listItemsFromHtml }
 
 function plainRuleSentences(body: string): { intro: string; rules: string[] } {
   const plain = body
@@ -46,7 +35,7 @@ function plainRuleSentences(body: string): { intro: string; rules: string[] } {
 
 function introFromHtml(value: string) {
   const match = value.match(/<p[^>]*>([\s\S]*?)<\/p>/i)
-  if (!match) return ''
+  if (!match?.[1]) return ''
   return match[1]
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<[^>]+>/g, '')
@@ -79,39 +68,12 @@ export function complaintsHtml(body: string) {
         .trim()
     : chunk
 
-  let html = plainToHtmlForComplaints(plain)
-  return sanitizeHtml(html)
-}
-
-function plainToHtmlForComplaints(value: string) {
-  return value
-    .split(/\n{2,}/)
-    .map((p) => `<p>${linkifyComplaintsFragment(p.trim())}</p>`)
-    .join('')
-}
-
-function linkifyComplaintsFragment(text: string) {
-  return escapeComplaintsText(text)
-    .replace(/\n/g, '<br>')
-    .replace(
-      /06 2292 1649/g,
-      '<a href="tel:+31622921649">06 2292 1649</a>',
-    )
-    .replace(
-      /bemiddelingapotheken@kpnmail\.nl/g,
-      '<a href="mailto:bemiddelingapotheken@kpnmail.nl">bemiddelingapotheken@kpnmail.nl</a>',
-    )
-    .replace(/088 022 9100/g, '<a href="tel:+31880229100">088 022 9100</a>')
-    .replace(/info@skge\.nl/g, '<a href="mailto:info@skge.nl">info@skge.nl</a>')
-    .replace(/\bskge\.nl\b/g, '<a href="https://www.skge.nl">skge.nl</a>')
-}
-
-function escapeComplaintsText(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return sanitizeHtml(
+    plain
+      .split(/\n{2,}/)
+      .map((p) => `<p>${linkifyCommonFragment(p.trim())}</p>`)
+      .join(''),
+  )
 }
 
 export function complaintSteps(body: string) {
