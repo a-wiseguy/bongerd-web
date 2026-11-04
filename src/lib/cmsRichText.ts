@@ -57,10 +57,6 @@ export function linkifyCommonFragment(text: string) {
       '<a href="https://home.mijngezondheid.net">MijnGezondheid.net</a>',
     )
     .replace(
-      /home\.mijngezondheid\.net/gi,
-      '<a href="https://home.mijngezondheid.net">home.mijngezondheid.net</a>',
-    )
-    .replace(
       /06 2292 1649/g,
       '<a href="tel:+31622921649">06 2292 1649</a>',
     )
@@ -79,6 +75,10 @@ export function linkifyCommonFragment(text: string) {
       /\bcontactformulier\b/gi,
       '<a href="/contact">contactformulier</a>',
     )
+    .replace(
+      /Land(?:elijk Coördinatiecentrum Reizigersadvisering \(LCR\)|Coördinatiecentrum Reizigersadvisering \(LCR\))/gi,
+      '<a href="https://www.lcr.nl/Landen">LCR</a>',
+    )
 }
 
 export function paragraphsToEnrichedHtml(value: string) {
@@ -92,9 +92,14 @@ export function enrichCmsHtml(body: string) {
   const chunk = body.trim()
   if (!chunk) return ''
 
-  // cms html: sanitize only — never run plain-text linkify on tags/attributes
   if (looksLikeHtml(chunk)) {
-    return toSafeHtml(chunk)
+    // structured html with links or lists: sanitize only
+    if (chunk.includes('<a ') || /<ul\b/i.test(chunk)) {
+      return toSafeHtml(chunk)
+    }
+    // bare <p> blocks from the editor — still enrich text
+    const plain = htmlToPlain(chunk)
+    return emphasizeKeyPhrases(sanitizeHtml(paragraphsToEnrichedHtml(plain)))
   }
 
   const structured = plainServiceBodyToHtml(chunk)

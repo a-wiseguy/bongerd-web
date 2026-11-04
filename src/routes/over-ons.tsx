@@ -44,14 +44,12 @@ function OverOns() {
         image={hero.src}
         imageAlt={hero.alt}
       />
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_17rem]">
-        <div className="order-2 grid gap-8 lg:order-1">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <OverOnsPageNav items={navItems} />
+        <div className="grid gap-8">
           {overOnsSectionKeys.map((key) => (
             <Section key={key} sectionKey={key} copy={copy} />
           ))}
-        </div>
-        <div className="order-1 lg:order-2">
-          <OverOnsPageNav items={navItems} />
         </div>
       </div>
     </div>

@@ -12,7 +12,12 @@ describe('cmsRichText', () => {
     assert.doesNotMatch(out, /home\.mijngezondheid\.net">/)
   })
 
-  it('linkifies plain text without mangling urls in attributes', () => {
+  it('linkifies plain text inside simple html paragraphs', () => {
+    const out = enrichCmsHtml('<p>Vraag aan via MijnGezondheid.net met DigiD.</p>')
+    assert.match(out, /href="https:\/\/home\.mijngezondheid\.net"/)
+  })
+
+  it('linkifies plain text email', () => {
     const out = enrichCmsHtml('Mail info@apotheekdebongerd.nl voor hulp.')
     assert.match(out, /href="mailto:info@apotheekdebongerd\.nl"/)
   })

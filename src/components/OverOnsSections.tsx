@@ -132,14 +132,14 @@ export function OverOnsPageNav({
   items: { id: string; label: string }[]
 }) {
   return (
-    <nav aria-label="Op deze pagina" className="rounded-[1.8rem] border border-line bg-white p-5 shadow-card lg:sticky lg:top-24">
+    <nav aria-label="Op deze pagina" className="mb-8">
       <p className="text-sm font-semibold uppercase tracking-wide text-teal">Op deze pagina</p>
-      <ul className="mt-4 grid gap-1">
+      <ul className="mt-3 flex flex-wrap gap-2">
         {items.map((item) => (
           <li key={item.id}>
             <a
               href={`#${item.id}`}
-              className="flex min-h-11 items-center rounded-xl px-3 text-[0.98rem] font-semibold text-navy transition hover:bg-mist focus-visible:bg-mist"
+              className="inline-flex min-h-10 items-center rounded-full border border-line bg-white px-4 text-sm font-semibold text-navy shadow-sm transition hover:border-navy/25 hover:bg-mist"
             >
               {item.label}
             </a>
