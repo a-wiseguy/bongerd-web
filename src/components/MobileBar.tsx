@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { MapPinned, Phone, Repeat } from 'lucide-react'
 import type { Location } from '@/lib/schema'
@@ -7,14 +7,21 @@ import { mapsHref } from '@/lib/format'
 export function MobileBar({ locations }: { locations: Location[] }) {
   const [sheet, setSheet] = useState<'call' | 'route' | null>(null)
   const titleId = useId()
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!sheet) return
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setSheet(null)
     }
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    panelRef.current?.focus()
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKey)
+    }
   }, [sheet])
 
   return (
@@ -57,13 +64,21 @@ export function MobileBar({ locations }: { locations: Location[] }) {
         </div>
       </nav>
       {sheet ? (
-        <div className="fixed inset-x-0 bottom-20 z-40 px-3 pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="fixed inset-x-0 bottom-20 z-50 px-3 pb-[env(safe-area-inset-bottom)] lg:hidden">
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-navy-deep/45 lg:hidden"
+            aria-label="Sluiten"
+            onClick={() => setSheet(null)}
+          />
           <div
+            ref={panelRef}
             id="snel-keuze"
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-labelledby={titleId}
-            className="mx-auto max-w-lg rounded-3xl border border-line bg-white p-4 shadow-card"
+            className="relative z-50 mx-auto max-w-lg rounded-3xl border border-line bg-white p-4 shadow-card outline-none"
           >
             <p id={titleId} className="font-serif text-2xl text-navy">
               {sheet === 'call' ? 'Kies een vestiging om te bellen' : 'Kies een vestiging voor de route'}

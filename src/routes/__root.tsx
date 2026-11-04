@@ -39,6 +39,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
+  errorComponent: RootError,
   notFoundComponent: () => (
     <div className="mx-auto max-w-xl px-4 py-20">
       <h1 className="font-serif text-4xl text-navy">Pagina niet gevonden</h1>
@@ -60,9 +61,9 @@ function RootComponent() {
       {isAdmin ? (
         <Outlet />
       ) : (
-        <div className="min-h-dvh">
+        <div className="flex min-h-dvh flex-col">
           <SiteHeader />
-          <main id="inhoud" tabIndex={-1}>
+          <main id="inhoud" tabIndex={-1} className="flex-1">
             <Outlet />
           </main>
           <SiteFooter />
@@ -73,16 +74,52 @@ function RootComponent() {
   )
 }
 
+function RootError({ reset }: { reset: () => void }) {
+  return (
+    <RootDocument>
+      <div className="flex min-h-dvh items-center bg-paper px-4">
+        <div className="mx-auto w-full max-w-xl py-16">
+          <div className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-card">
+            <img src="/brand/logo.png" alt="Apotheek De Bongerd" className="h-12 w-auto" />
+          </div>
+          <h1 className="mt-6 font-serif text-4xl text-navy">De pagina kan nu niet geladen worden</h1>
+          <p className="mt-3 text-muted">
+            Er ging iets mis bij het ophalen. Probeer het opnieuw. Blijft dit gebeuren, bel dan uw vestiging.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="min-h-12 rounded-full bg-navy px-5 font-semibold text-white"
+              onClick={() => reset()}
+            >
+              Opnieuw proberen
+            </button>
+            <a
+              href="/"
+              className="inline-flex min-h-12 items-center rounded-full border border-line bg-white px-5 font-semibold text-navy"
+            >
+              Naar home
+            </a>
+          </div>
+        </div>
+      </div>
+    </RootDocument>
+  )
+}
+
 function RootDocument({
   children,
   jsonLd,
 }: {
   children: ReactNode
-  jsonLd: unknown
+  jsonLd?: unknown
 }) {
-  const jsonLdScript = JSON.stringify(jsonLd).replace(/[<>&]/g, (character) =>
-    ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026' })[character]!,
-  )
+  const jsonLdScript =
+    jsonLd == null
+      ? null
+      : JSON.stringify(jsonLd).replace(/[<>&]/g, (character) =>
+          ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026' })[character]!,
+        )
 
   return (
     <html lang="nl">
@@ -91,10 +128,9 @@ function RootDocument({
       </head>
       <body>
         {children}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLdScript }}
-        />
+        {jsonLdScript ? (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript }} />
+        ) : null}
         <Scripts />
       </body>
     </html>

@@ -28,6 +28,7 @@ function ToolbarButton({
     <button
       type="button"
       disabled={disabled}
+      aria-pressed={active ?? false}
       onClick={onClick}
       className={`rounded-lg px-2.5 py-1.5 text-sm font-semibold disabled:opacity-40 ${
         active ? 'bg-navy text-white' : 'bg-mist text-navy hover:bg-sky'
@@ -111,6 +112,9 @@ export function RichTextEditor({ name, defaultValue = '', maxLength, compact }: 
 
   return (
     <div className="grid gap-1">
+      <span id={`${reactId}-label`} className="sr-only">
+        Tekst
+      </span>
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
         <div className="flex flex-wrap gap-1 border-b border-line bg-mist/60 p-2">
           <ToolbarButton

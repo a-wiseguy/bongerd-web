@@ -71,7 +71,7 @@ export function SiteHeader() {
         </button>
       </div>
       {open ? (
-        <div id="mobiel-menu" className="border-t border-line bg-white px-4 py-4 lg:hidden">
+        <div id="mobiel-menu" className="max-h-[calc(100dvh-9.5rem)] overflow-y-auto border-t border-line bg-white px-4 py-4 lg:hidden">
           <nav aria-label="Mobiel menu">
             <ul className="grid gap-1">
               {links.map((link) => (

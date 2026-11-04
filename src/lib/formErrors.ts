@@ -12,6 +12,25 @@ export function fieldErrorsFromZod(error: ZodError): Record<string, string> {
 
 type IssueLike = { path?: Array<string | number | symbol>; message?: string }
 
+const technical = /expected|invalid|too (small|big)|received|failed query|sql/i
+
+/** dutch message for staff, never a zod dump or a query */
+export function staffErrorMessage(error: unknown, fallback: string) {
+  const fields = fieldErrorsFromThrown(error)
+  if (fields) {
+    const friendly = [...new Set(Object.values(fields))].filter((message) => !technical.test(message))
+    if (friendly.length) return friendly.join(' ')
+    return fallback
+  }
+  if (error instanceof Error) {
+    const message = error.message.trim()
+    if (message && !message.startsWith('[') && message.length < 180 && !technical.test(message)) {
+      return message
+    }
+  }
+  return fallback
+}
+
 /** parse tanstack start / zod json dumps thrown as Error.message */
 export function fieldErrorsFromThrown(error: unknown): Record<string, string> | null {
   const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : null

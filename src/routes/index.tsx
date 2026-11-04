@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowRight, Clock3, MapPinned, Phone, Repeat } from 'lucide-react'
+import { ArrowRight, MapPinned, Phone, Repeat } from 'lucide-react'
 import { OpenBadge, Photo, Prose } from '@/components/PageHero'
 import { blockMap, heading, mapsHref, text } from '@/lib/format'
 import { newsImage, photos, serviceImage } from '@/lib/images'
@@ -45,23 +45,26 @@ function HomePage() {
                 detail={anyOpen ? 'minstens één vestiging' : 'zie openingstijden'}
               />
             </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 to="/diensten"
                 hash="herhaalrecepten"
-                className="flex min-h-14 items-center justify-center gap-2 rounded-full bg-navy px-4 font-semibold text-white"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-navy px-5 font-semibold text-white sm:w-auto"
               >
                 <Repeat className="h-4 w-4" aria-hidden />
                 Herhaalrecept
               </Link>
               <Link
                 to="/contact"
-                className="flex min-h-14 items-center justify-center gap-2 rounded-full border border-navy px-4 font-semibold text-navy"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full border border-navy bg-white px-5 font-semibold text-navy sm:w-auto"
               >
                 <Phone className="h-4 w-4" aria-hidden />
                 Contact
               </Link>
-              <Link to="/contact" className="flex min-h-14 items-center justify-center gap-2 rounded-full bg-mint px-4 font-semibold text-teal">
+              <Link
+                to="/contact"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-mint px-5 font-semibold text-teal sm:w-auto"
+              >
                 <MapPinned className="h-4 w-4" aria-hidden />
                 Route en adressen
               </Link>
@@ -149,7 +152,7 @@ function HomePage() {
             <a
               key={service.id}
               href={`/diensten#${service.slug}`}
-              className="overflow-hidden rounded-3xl border border-line bg-white shadow-card"
+              className="card-link overflow-hidden rounded-3xl border border-line bg-white shadow-card"
             >
               <img src={photo.src} alt="" className="h-36 w-full object-cover" />
               <div className="p-6">
@@ -178,7 +181,7 @@ function HomePage() {
                 key={post.id}
                 to="/nieuws/$slug"
                 params={{ slug: post.slug }}
-                className="overflow-hidden rounded-3xl border border-line bg-white"
+                className="card-link overflow-hidden rounded-3xl border border-line bg-white shadow-card"
               >
                 <img src={photo.src} alt="" className="h-36 w-full object-cover" />
                 <div className="p-6">
@@ -202,7 +205,7 @@ function HomePage() {
             >
               Route {item.location.name}
               <span className="sr-only">, opent Google Maps</span>
-              <Clock3 className="h-4 w-4" aria-hidden />
+              <MapPinned className="h-4 w-4" aria-hidden />
             </a>
           ))}
         </div>

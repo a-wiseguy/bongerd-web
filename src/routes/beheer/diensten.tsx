@@ -1,7 +1,8 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { AdminIndexedPage } from '@/components/AdminPageIndex'
-import { btnClass, fieldClass, ghostBtn } from '@/components/AdminShell'
+import { Field, PublishField, fieldClass } from '@/components/AdminShell'
+import { AdminForm, DeleteButton, SaveButton } from '@/components/admin/AdminForm'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { limits } from '@/lib/limits'
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/beheer/diensten')({
 function ServicesAdmin() {
   const items = Route.useLoaderData()
   const router = useRouter()
-  const [formKey, setFormKey] = useState(0)
+  const [draftKey, setDraftKey] = useState(0)
   const indexItems = [
     { id: 'dienst-nieuw', label: 'Nieuwe dienst' },
     ...items.map((item) => ({
@@ -30,13 +31,11 @@ function ServicesAdmin() {
       <p className="mt-2 text-muted">
         Samenvatting blijft kort (max. {limits.serviceSummary} tekens) voor de kaarten op de site.
       </p>
-      <form
-        key={formKey}
+      <AdminForm
         id="dienst-nieuw"
-        className="mt-6 grid scroll-mt-6 gap-3 rounded-[1.5rem] border border-line bg-white p-5"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          const data = new FormData(event.currentTarget)
+        className="mt-6 scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
+        success="Dienst toegevoegd."
+        onSave={async (data, form) => {
           await saveService({
             data: {
               title: String(data.get('title') ?? ''),
@@ -49,50 +48,38 @@ function ServicesAdmin() {
               sortOrder: Number(data.get('sortOrder') || items.length + 1),
             },
           })
-          setFormKey((k) => k + 1)
+          form.reset()
+          setDraftKey((key) => key + 1)
           await router.invalidate()
         }}
       >
         <h2 className="font-serif text-2xl text-navy">Nieuwe dienst</h2>
-        <input name="title" required maxLength={limits.title} placeholder="Titel" className={fieldClass} />
-        <label className="grid gap-1">
-          <span className="text-sm font-semibold text-navy">Samenvatting (kort)</span>
-          <textarea
-            name="summary"
-            required
-            rows={2}
-            maxLength={limits.serviceSummary}
-            placeholder="Samenvatting"
-            className={fieldClass}
-          />
-        </label>
+        <Field label="Titel">
+          <input name="title" required maxLength={limits.title} className={fieldClass} />
+        </Field>
+        <Field label="Samenvatting (kort)">
+          <textarea name="summary" required rows={2} maxLength={limits.serviceSummary} className={fieldClass} />
+        </Field>
         <div className="grid gap-1">
           <span className="text-sm font-semibold text-navy">Tekst</span>
-          <RichTextEditor name="body" maxLength={limits.serviceBody} />
+          <RichTextEditor key={draftKey} name="body" maxLength={limits.serviceBody} />
         </div>
-        <ImageField label="Afbeelding" />
-        <input name="href" placeholder="Link (optioneel)" className={fieldClass} />
-        <input name="sortOrder" type="number" defaultValue={items.length + 1} className={fieldClass} />
-        <label className="flex items-center gap-2">
-          <input name="published" type="checkbox" defaultChecked />
-          Gepubliceerd
-        </label>
-        <button type="submit" className={btnClass}>
-          Toevoegen
-        </button>
-      </form>
+        <ImageField key={draftKey} label="Afbeelding" />
+        <Field label="Link (optioneel)" hint="Volledige URL of een pad zoals /contact. Leeg laten als er geen knop hoeft.">
+          <input name="href" className={fieldClass} />
+        </Field>
+        <Field label="Volgorde" hint="Lager getal staat hoger op de pagina.">
+          <input name="sortOrder" type="number" defaultValue={items.length + 1} className={fieldClass} />
+        </Field>
+        <PublishField />
+        <SaveButton>Toevoegen</SaveButton>
+      </AdminForm>
       <ul className="mt-6 grid gap-4">
         {items.map((item) => (
-          <li
-            key={item.id}
-            id={`dienst-${item.id}`}
-            className="scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
-          >
-            <form
-              className="grid gap-3"
-              onSubmit={async (event) => {
-                event.preventDefault()
-                const data = new FormData(event.currentTarget)
+          <li key={item.id} id={`dienst-${item.id}`} className="scroll-mt-6">
+            <AdminForm
+              className="rounded-[1.5rem] border border-line bg-white p-5"
+              onSave={async (data) => {
                 await saveService({
                   data: {
                     id: item.id,
@@ -109,9 +96,10 @@ function ServicesAdmin() {
                 await router.invalidate()
               }}
             >
-              <input name="title" defaultValue={item.title} maxLength={limits.title} className={fieldClass} />
-              <label className="grid gap-1">
-                <span className="text-sm font-semibold text-navy">Samenvatting (kort)</span>
+              <Field label="Titel">
+                <input name="title" defaultValue={item.title} maxLength={limits.title} className={fieldClass} />
+              </Field>
+              <Field label="Samenvatting (kort)">
                 <textarea
                   name="summary"
                   defaultValue={item.summary}
@@ -119,34 +107,30 @@ function ServicesAdmin() {
                   maxLength={limits.serviceSummary}
                   className={fieldClass}
                 />
-              </label>
+              </Field>
               <div className="grid gap-1">
                 <span className="text-sm font-semibold text-navy">Tekst</span>
                 <RichTextEditor name="body" defaultValue={item.body} maxLength={limits.serviceBody} />
               </div>
               <ImageField defaultUrl={item.imageUrl} defaultAlt={item.imageAlt} label="Afbeelding" />
-              <input name="href" defaultValue={item.href ?? ''} className={fieldClass} />
-              <input name="sortOrder" type="number" defaultValue={item.sortOrder} className={fieldClass} />
-              <label className="flex items-center gap-2">
-                <input name="published" type="checkbox" defaultChecked={item.published} />
-                Gepubliceerd
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" className={btnClass}>
-                  Opslaan
-                </button>
-                <button
-                  type="button"
-                  className={ghostBtn}
-                  onClick={async () => {
+              <Field label="Link (optioneel)" hint="Volledige URL of een pad zoals /contact. Leeg laten als er geen knop hoeft.">
+                <input name="href" defaultValue={item.href ?? ''} className={fieldClass} />
+              </Field>
+              <Field label="Volgorde" hint="Lager getal staat hoger op de pagina.">
+                <input name="sortOrder" type="number" defaultValue={item.sortOrder} className={fieldClass} />
+              </Field>
+              <PublishField defaultChecked={item.published} />
+              <div className="flex flex-wrap items-center gap-2">
+                <SaveButton>Opslaan</SaveButton>
+                <DeleteButton
+                  confirmText={`“${item.title}” verdwijnt van de site.`}
+                  onConfirm={async () => {
                     await deleteService({ data: { id: item.id } })
                     await router.invalidate()
                   }}
-                >
-                  Verwijder
-                </button>
+                />
               </div>
-            </form>
+            </AdminForm>
           </li>
         ))}
       </ul>

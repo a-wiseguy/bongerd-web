@@ -1,7 +1,8 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { AdminIndexedPage } from '@/components/AdminPageIndex'
-import { btnClass, fieldClass, ghostBtn } from '@/components/AdminShell'
+import { Field, PublishField, fieldClass } from '@/components/AdminShell'
+import { AdminForm, DeleteButton, SaveButton } from '@/components/admin/AdminForm'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { limits } from '@/lib/limits'
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/beheer/nieuws')({
 function NewsAdmin() {
   const posts = Route.useLoaderData()
   const router = useRouter()
-  const [formKey, setFormKey] = useState(0)
+  const [draftKey, setDraftKey] = useState(0)
   const indexItems = [
     { id: 'nieuws-nieuw', label: 'Nieuw bericht' },
     ...posts.map((post) => ({
@@ -27,13 +28,12 @@ function NewsAdmin() {
   return (
     <AdminIndexedPage items={indexItems}>
       <h1 className="font-serif text-4xl text-navy">Nieuws</h1>
-      <form
-        key={formKey}
+      <p className="mt-2 text-muted">Gepubliceerde berichten verschijnen op de nieuwspagina.</p>
+      <AdminForm
         id="nieuws-nieuw"
-        className="mt-6 grid scroll-mt-6 gap-3 rounded-[1.5rem] border border-line bg-white p-5"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          const data = new FormData(event.currentTarget)
+        className="mt-6 scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
+        success="Bericht geplaatst."
+        onSave={async (data, form) => {
           await saveNews({
             data: {
               title: String(data.get('title') ?? ''),
@@ -44,44 +44,32 @@ function NewsAdmin() {
               published: data.get('published') === 'on',
             },
           })
-          setFormKey((k) => k + 1)
+          form.reset()
+          setDraftKey((key) => key + 1)
           await router.invalidate()
         }}
       >
         <h2 className="font-serif text-2xl text-navy">Nieuw bericht</h2>
-        <label className="grid gap-1">
-          <span className="text-sm font-semibold text-navy">Titel</span>
+        <Field label="Titel">
           <input name="title" required maxLength={limits.title} className={fieldClass} />
-        </label>
-        <label className="grid gap-1">
-          <span className="text-sm font-semibold text-navy">Korte samenvatting</span>
+        </Field>
+        <Field label="Korte samenvatting">
           <textarea name="excerpt" required rows={2} maxLength={limits.newsExcerpt} className={fieldClass} />
-        </label>
+        </Field>
         <div className="grid gap-1">
           <span className="text-sm font-semibold text-navy">Bericht</span>
-          <RichTextEditor name="body" maxLength={limits.newsBody} />
+          <RichTextEditor key={draftKey} name="body" maxLength={limits.newsBody} />
         </div>
-        <ImageField label="Afbeelding" />
-        <label className="flex items-center gap-2">
-          <input name="published" type="checkbox" defaultChecked />
-          Gepubliceerd
-        </label>
-        <button type="submit" className={btnClass}>
-          Publiceren
-        </button>
-      </form>
+        <ImageField key={draftKey} label="Afbeelding" />
+        <PublishField />
+        <SaveButton>Publiceren</SaveButton>
+      </AdminForm>
       <ul className="mt-6 grid gap-4">
         {posts.map((post) => (
-          <li
-            key={post.id}
-            id={`nieuws-${post.id}`}
-            className="scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
-          >
-            <form
-              className="grid gap-3"
-              onSubmit={async (event) => {
-                event.preventDefault()
-                const data = new FormData(event.currentTarget)
+          <li key={post.id} id={`nieuws-${post.id}`} className="scroll-mt-6">
+            <AdminForm
+              className="rounded-[1.5rem] border border-line bg-white p-5"
+              onSave={async (data) => {
                 await saveNews({
                   data: {
                     id: post.id,
@@ -97,39 +85,35 @@ function NewsAdmin() {
                 await router.invalidate()
               }}
             >
-              <input name="title" defaultValue={post.title} maxLength={limits.title} className={fieldClass} />
-              <textarea
-                name="excerpt"
-                defaultValue={post.excerpt}
-                rows={2}
-                maxLength={limits.newsExcerpt}
-                className={fieldClass}
-              />
+              <Field label="Titel">
+                <input name="title" defaultValue={post.title} maxLength={limits.title} className={fieldClass} />
+              </Field>
+              <Field label="Korte samenvatting">
+                <textarea
+                  name="excerpt"
+                  defaultValue={post.excerpt}
+                  rows={2}
+                  maxLength={limits.newsExcerpt}
+                  className={fieldClass}
+                />
+              </Field>
               <div className="grid gap-1">
                 <span className="text-sm font-semibold text-navy">Bericht</span>
                 <RichTextEditor name="body" defaultValue={post.body} maxLength={limits.newsBody} />
               </div>
               <ImageField defaultUrl={post.imageUrl} defaultAlt={post.imageAlt} label="Afbeelding" />
-              <label className="flex items-center gap-2">
-                <input name="published" type="checkbox" defaultChecked={post.published} />
-                Gepubliceerd
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" className={btnClass}>
-                  Opslaan
-                </button>
-                <button
-                  type="button"
-                  className={ghostBtn}
-                  onClick={async () => {
+              <PublishField defaultChecked={post.published} />
+              <div className="flex flex-wrap items-center gap-2">
+                <SaveButton>Opslaan</SaveButton>
+                <DeleteButton
+                  confirmText={`“${post.title}” verdwijnt van de site.`}
+                  onConfirm={async () => {
                     await deleteNews({ data: { id: post.id } })
                     await router.invalidate()
                   }}
-                >
-                  Verwijder
-                </button>
+                />
               </div>
-            </form>
+            </AdminForm>
           </li>
         ))}
       </ul>

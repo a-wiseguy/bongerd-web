@@ -34,7 +34,12 @@ function NewsList() {
         imageAlt={hero.alt}
       />
       <div className="mx-auto grid max-w-3xl gap-4 px-4 py-10 sm:px-6">
-        {posts.length === 0 ? <p className="text-muted">Er zijn nu geen berichten.</p> : null}
+        {posts.length === 0 ? (
+          <div className="rounded-[1.8rem] border border-dashed border-line bg-white px-6 py-10 text-center">
+            <p className="font-serif text-2xl text-navy">Geen berichten</p>
+            <p className="mt-2 text-muted">Er staan nu geen nieuwsberichten op de site.</p>
+          </div>
+        ) : null}
         {posts.map((post, index) => {
           const photo = newsImage(post, index % 2 === 0 ? photos.storefront : photos.interior)
           return (
@@ -42,7 +47,7 @@ function NewsList() {
               key={post.id}
               to="/nieuws/$slug"
               params={{ slug: post.slug }}
-              className="overflow-hidden rounded-[1.8rem] border border-line bg-white"
+              className="card-link overflow-hidden rounded-[1.8rem] border border-line bg-white shadow-card"
             >
               <img src={photo.src} alt={photo.alt} className="h-40 w-full object-cover" />
               <div className="p-6">

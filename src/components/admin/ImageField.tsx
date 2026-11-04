@@ -85,7 +85,11 @@ export function ImageField({
         ) : null}
       </div>
       <p className="text-xs text-muted">JPEG, PNG of WebP · max 2 MB</p>
-      {error ? <p className="text-sm font-semibold text-closed">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm font-semibold text-closed">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }
