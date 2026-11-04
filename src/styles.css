@@ -83,6 +83,24 @@ body {
   margin-top: 0.35rem;
 }
 
+.service-prose ul {
+  margin-top: 0.85rem;
+  padding-left: 1.15rem;
+}
+
+.service-prose li {
+  line-height: 1.6;
+  margin-top: 0.45rem;
+}
+
+.service-prose p {
+  line-height: 1.65;
+}
+
+.service-prose p + ul {
+  margin-top: 0.65rem;
+}
+
 .prose-site h2,
 .prose-site h3 {
   color: var(--color-navy);

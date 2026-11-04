@@ -92,12 +92,41 @@ export function enrichCmsHtml(body: string) {
   const chunk = body.trim()
   if (!chunk) return ''
 
-  if (looksLikeHtml(chunk) && chunk.includes('<a ')) {
-    return emphasizeKeyPhrases(toSafeHtml(chunk))
+  // cms html: sanitize only — never run plain-text linkify on tags/attributes
+  if (looksLikeHtml(chunk)) {
+    return toSafeHtml(chunk)
   }
 
-  const plain = looksLikeHtml(chunk) ? htmlToPlain(chunk) : chunk
-  return emphasizeKeyPhrases(sanitizeHtml(paragraphsToEnrichedHtml(plain)))
+  const structured = plainServiceBodyToHtml(chunk)
+  if (looksLikeHtml(structured)) {
+    return sanitizeHtml(structured)
+  }
+
+  return emphasizeKeyPhrases(sanitizeHtml(paragraphsToEnrichedHtml(structured)))
+}
+
+function plainServiceBodyToHtml(value: string) {
+  const chunks = value.replace(/\r/g, '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+  if (chunks.length >= 2) {
+    const listItems = contactReasonsFromParagraph(chunks[1]!)
+    if (listItems.length >= 2) {
+      const intro = `<p>${linkifyCommonFragment(chunks[0]!)}</p>`
+      const list = `<ul>${listItems.map((item) => `<li>${linkifyCommonFragment(item)}</li>`).join('')}</ul>`
+      const tail = chunks.slice(2).map((p) => `<p>${linkifyCommonFragment(p)}</p>`).join('')
+      return `${intro}${list}${tail}`
+    }
+  }
+  return value
+}
+
+function contactReasonsFromParagraph(text: string) {
+  if (!/^We nemen contact op als /i.test(text)) return []
+  const rest = text.replace(/^We nemen contact op als /i, '')
+  return rest
+    .split(/,\s*(?:als|of als)\s+/i)
+    .map((part) => part.replace(/\.\s*$/, '').trim())
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}.`)
 }
 
 export function emphasizeKeyPhrases(html: string) {
