@@ -61,7 +61,15 @@ function LoginPage() {
         </label>
         <label className="mt-4 grid gap-1">
           <span className="text-sm font-semibold text-navy">Wachtwoord</span>
-          <input name="password" type="password" required autoComplete="current-password" className={fieldClass} />
+          <input
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
+            className={fieldClass}
+          />
         </label>
         {error ? (
           <p id="login-error" className="mt-3 text-closed" role="alert">

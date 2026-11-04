@@ -1,7 +1,8 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
+import { AdminForm, SaveButton } from '@/components/admin/AdminForm'
 import { AdminIndexedPage } from '@/components/AdminPageIndex'
-import { btnClass, fieldClass } from '@/components/AdminShell'
+import { fieldClass } from '@/components/AdminShell'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { limits } from '@/lib/limits'
@@ -24,8 +25,24 @@ const pageTitles: Record<string, string> = {
 
 const pageOrder = Object.keys(pageTitles)
 
+const blockLabels: Record<string, string> = {
+  hero: 'Koptekst',
+  intro: 'Introductie',
+  team: 'Team',
+  kwaliteit: 'Kwaliteit',
+  inschrijven: 'Inschrijven',
+  huisregels: 'Huisregels',
+  klachten: 'Klachten',
+  dienst: 'Dienstapotheek',
+  form: 'Formulier',
+}
+
 function pageLabel(page: string) {
   return pageTitles[page] ?? page.replace(/-/g, ' ')
+}
+
+function blockLabel(key: string) {
+  return blockLabels[key] ?? key
 }
 
 function ContentAdmin() {
@@ -43,7 +60,7 @@ function ContentAdmin() {
   const pageBlocks = blocks.filter((b) => b.page === page)
   const indexItems = pageBlocks.map((block) => ({
     id: `blok-${block.id}`,
-    label: block.blockKey,
+    label: blockLabel(block.blockKey),
   }))
 
   return (
@@ -84,13 +101,11 @@ function ContentAdmin() {
           <div className="grid gap-4">
             <h2 className="font-serif text-3xl text-navy">{pageLabel(page)}</h2>
             {pageBlocks.map((block) => (
-              <form
+              <AdminForm
                 key={block.id}
                 id={`blok-${block.id}`}
                 className="scroll-mt-6 rounded-[1.5rem] border border-line bg-white p-5"
-                onSubmit={async (event) => {
-                  event.preventDefault()
-                  const data = new FormData(event.currentTarget)
+                onSave={async (data) => {
                   await saveContentBlock({
                     data: {
                       id: block.id,
@@ -103,8 +118,8 @@ function ContentAdmin() {
                   await router.invalidate()
                 }}
               >
-                <p className="text-sm font-semibold text-muted">{block.blockKey}</p>
-                <label className="mt-2 grid gap-1">
+                <h3 className="font-serif text-2xl text-navy">{blockLabel(block.blockKey)}</h3>
+                <label className="grid gap-1">
                   <span className="text-sm font-semibold text-navy">Titel</span>
                   <input
                     name="title"
@@ -113,23 +128,19 @@ function ContentAdmin() {
                     className={fieldClass}
                   />
                 </label>
-                <div className="mt-3 grid gap-1">
+                <div className="grid gap-1">
                   <span className="text-sm font-semibold text-navy">Tekst</span>
                   <RichTextEditor name="body" defaultValue={block.body} maxLength={limits.contentBody} />
                 </div>
                 {block.blockKey === 'intro' ? (
-                  <div className="mt-3">
-                    <ImageField
-                      defaultUrl={block.imageUrl}
-                      defaultAlt={block.imageAlt}
-                      label="Paginakop-afbeelding"
-                    />
-                  </div>
+                  <ImageField
+                    defaultUrl={block.imageUrl}
+                    defaultAlt={block.imageAlt}
+                    label="Paginakop-afbeelding"
+                  />
                 ) : null}
-                <button type="submit" className={`${btnClass} mt-3`}>
-                  Opslaan
-                </button>
-              </form>
+                <SaveButton>Opslaan</SaveButton>
+              </AdminForm>
             ))}
           </div>
         </AdminIndexedPage>

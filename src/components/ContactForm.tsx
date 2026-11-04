@@ -53,7 +53,7 @@ export function ContactForm() {
         if ('fieldErrors' in result && result.fieldErrors) {
           setFieldErrors(result.fieldErrors as Partial<Record<FieldKey, string>>)
           setStatus('error')
-          setMessage('')
+          setMessage('Controleer de gemarkeerde velden.')
           return
         }
         if ('error' in result && result.error) {
@@ -162,7 +162,11 @@ export function ContactForm() {
       {status !== 'idle' && message ? (
         <p
           id={statusId}
-          className={status === 'ok' ? 'text-open' : 'text-closed'}
+          className={
+            status === 'ok'
+              ? 'rounded-2xl bg-mint px-4 py-3 font-semibold text-teal'
+              : 'rounded-2xl bg-white px-4 py-3 font-semibold text-closed ring-1 ring-closed/25'
+          }
           role={status === 'error' ? 'alert' : 'status'}
           aria-live={status === 'error' ? 'assertive' : 'polite'}
         >

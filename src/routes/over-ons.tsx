@@ -74,7 +74,10 @@ function OverOns() {
               </li>
             ))}
           </ul>
-          <Link to="/contact" className="mt-6 inline-flex min-h-12 items-center font-semibold text-teal">
+          <Link
+            to="/contact"
+            className="mt-6 inline-flex min-h-12 items-center rounded-full bg-white px-5 font-semibold text-teal"
+          >
             Contact en route
           </Link>
         </aside>

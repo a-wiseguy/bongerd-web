@@ -27,8 +27,11 @@ export function AdminShell({
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <p className="font-serif text-2xl text-navy">Beheer</p>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-muted sm:inline">{email}</span>
+          <div className="flex items-center gap-2 text-sm sm:gap-3">
+            <span className="hidden max-w-48 truncate text-muted sm:inline">{email}</span>
+            <Link to="/" className="inline-flex min-h-12 items-center rounded-full px-3 font-semibold text-navy hover:bg-mist">
+              Bekijk site
+            </Link>
             <button
               type="button"
               className="min-h-12 rounded-full border border-line px-4 font-semibold text-navy"
@@ -67,15 +70,30 @@ export function AdminShell({
 
 export function Field({
   label,
+  hint,
   children,
 }: {
   label: string
+  hint?: string
   children: ReactNode
 }) {
   return (
     <label className="grid gap-1">
       <span className="text-sm font-semibold text-navy">{label}</span>
       {children}
+      {hint ? <span className="text-sm text-muted">{hint}</span> : null}
+    </label>
+  )
+}
+
+export function PublishField({ defaultChecked = true }: { defaultChecked?: boolean }) {
+  return (
+    <label className="flex items-start gap-3 rounded-2xl border border-line bg-paper px-4 py-3">
+      <input name="published" type="checkbox" defaultChecked={defaultChecked} className="mt-1 h-4 w-4 accent-navy" />
+      <span>
+        <span className="block text-sm font-semibold text-navy">Zichtbaar op de site</span>
+        <span className="block text-sm text-muted">Uitvinken haalt het weg voor bezoekers.</span>
+      </span>
     </label>
   )
 }

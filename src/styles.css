@@ -132,6 +132,20 @@ body {
   color: #fff;
 }
 
+.font-serif {
+  font-variant-numeric: lining-nums;
+}
+
+.card-link {
+  transition: border-color 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card-link:hover {
+    border-color: color-mix(in srgb, var(--color-navy) 32%, var(--color-line));
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
