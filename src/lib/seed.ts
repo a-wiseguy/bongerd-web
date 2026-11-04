@@ -111,14 +111,14 @@ const contentSeed = [
     page: 'over-ons',
     blockKey: 'huisregels',
     title: 'Huisregels',
-    body: 'In de apotheek zijn vaak meerdere mensen tegelijk. We vragen om respect voor elkaars privacy, geen agressie of intimidatie, en geen ongevraagde foto’s of opnamen. Minder valide bezoekers krijgen voorrang op een zitplaats. Hulphonden zijn welkom, andere honden niet vanwege allergie. Roken (inclusief e-sigaret) is niet toegestaan. Bij het afhalen van medicijnen kunnen we om legitimatie vragen.',
+    body: '<p>In de apotheek zijn vaak meerdere mensen tegelijk. We vragen u om het volgende:</p><ul><li>Respect voor elkaars privacy.</li><li>Geen agressie of intimidatie.</li><li>Geen ongevraagde foto’s of opnamen.</li><li>Minder valide bezoekers krijgen voorrang op een zitplaats.</li><li>Hulphonden zijn welkom; andere honden niet vanwege allergie.</li><li>Roken (inclusief e-sigaret) is niet toegestaan.</li><li>Bij het afhalen van medicijnen kunnen we om legitimatie vragen.</li></ul>',
     sortOrder: 5,
   },
   {
     page: 'over-ons',
     blockKey: 'klachten',
     title: 'Klachten',
-    body: 'Bespreek een klacht eerst met de apotheker. Komt u er samen niet uit, dan helpt de onafhankelijke klachtenbemiddelaar van het Bemiddelingsbureau Apotheken: 06 2292 1649 of bemiddelingapotheken@kpnmail.nl. Bemiddeling is gratis.\n\nDaarna kunt u, met een schriftelijke eindreactie van de apotheker, naar de Geschillencommissie Openbare Apotheken (SKGE): Postbus 8018, 5601 KA Eindhoven, 088 022 9100, info@skge.nl, skge.nl. Daar zijn kosten aan verbonden.',
+    body: 'Bespreek een klacht eerst met de apotheker.\n\nKomt u er samen niet uit, dan helpt de onafhankelijke klachtenbemiddelaar van het Bemiddelingsbureau Apotheken: 06 2292 1649 of bemiddelingapotheken@kpnmail.nl. Bemiddeling is gratis.\n\nDaarna kunt u, met een schriftelijke eindreactie van de apotheker, naar de Geschillencommissie Openbare Apotheken (SKGE): Postbus 8018, 5601 KA Eindhoven, 088 022 9100, info@skge.nl, skge.nl. Daar zijn kosten aan verbonden.',
     sortOrder: 6,
   },
   {

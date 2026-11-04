@@ -1,14 +1,20 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { PageHero, Prose } from '@/components/PageHero'
+import { createFileRoute } from '@tanstack/react-router'
+import { PageHero } from '@/components/PageHero'
+import {
+  ComplaintsBody,
+  HouseRulesBody,
+  OverOnsPageNav,
+} from '@/components/OverOnsSections'
 import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
+import { overOnsSectionId, overOnsSectionKeys, type OverOnsSectionKey } from '@/lib/overOnsContent'
 import { seo } from '@/lib/seo'
-import { getLocations, getPageBlocks } from '@/server/public'
+import { toSafeHtml } from '@/lib/sanitize'
+import { getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/over-ons')({
   loader: async () => ({
     blocks: await getPageBlocks({ data: 'over-ons' }),
-    locations: await getLocations(),
   }),
   head: () => ({
     meta: seo({
@@ -21,10 +27,13 @@ export const Route = createFileRoute('/over-ons')({
 })
 
 function OverOns() {
-  const { blocks, locations } = Route.useLoaderData()
+  const { blocks } = Route.useLoaderData()
   const copy = blockMap(blocks)
   const hero = blockImage(copy, 'over-ons.intro', photos.orchard)
-  const keys = ['intro', 'team', 'kwaliteit', 'inschrijven', 'huisregels', 'klachten'] as const
+  const navItems = overOnsSectionKeys.map((key) => ({
+    id: overOnsSectionId(key),
+    label: heading(copy, `over-ons.${key}`),
+  }))
 
   return (
     <div>
@@ -35,53 +44,59 @@ function OverOns() {
         image={hero.src}
         imageAlt={hero.alt}
       />
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_18rem]">
-        <div className="grid gap-8">
-          {keys
-            .filter((key) => key !== 'intro')
-            .map((key) => (
-              <section key={key} className="rounded-[1.8rem] border border-line bg-white p-6 sm:p-8">
-                {key === 'team' ? (
-                  <img
-                    src={photos.john.src}
-                    alt={photos.john.alt}
-                    className="mb-6 h-56 w-full rounded-[1.4rem] object-cover sm:h-72"
-                  />
-                ) : null}
-                {key === 'kwaliteit' ? (
-                  <img
-                    src={photos.interior.src}
-                    alt={photos.interior.alt}
-                    className="mb-6 h-56 w-full rounded-[1.4rem] object-cover sm:h-72"
-                  />
-                ) : null}
-                <h2 className="font-serif text-3xl text-navy">{heading(copy, `over-ons.${key}`)}</h2>
-                <div className="mt-4 text-muted">
-                  <Prose text={text(copy, `over-ons.${key}`)} />
-                </div>
-              </section>
-            ))}
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_17rem]">
+        <div className="order-2 grid gap-8 lg:order-1">
+          {overOnsSectionKeys.map((key) => (
+            <Section key={key} sectionKey={key} copy={copy} />
+          ))}
         </div>
-        <aside className="h-fit rounded-[1.8rem] bg-mint p-6">
-          <h2 className="font-serif text-2xl text-navy">Vestigingen</h2>
-          <ul className="mt-4 grid gap-4">
-            {locations.map((loc) => (
-              <li key={loc.id}>
-                <p className="font-semibold text-navy">{loc.name}</p>
-                <p className="text-sm text-muted">
-                  {loc.address}, {loc.city}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <Link
-            to="/contact"
-            className="mt-6 inline-flex min-h-12 items-center rounded-full bg-white px-5 font-semibold text-teal"
-          >
-            Contact en route
-          </Link>
-        </aside>
+        <div className="order-1 lg:order-2">
+          <OverOnsPageNav items={navItems} />
+        </div>
       </div>
     </div>
+  )
+}
+
+function Section({
+  sectionKey,
+  copy,
+}: {
+  sectionKey: OverOnsSectionKey
+  copy: ReturnType<typeof blockMap>
+}) {
+  const body = text(copy, `over-ons.${sectionKey}`)
+  const title = heading(copy, `over-ons.${sectionKey}`)
+
+  return (
+    <section
+      id={overOnsSectionId(sectionKey)}
+      className="scroll-mt-28 rounded-[1.8rem] border border-line bg-white p-6 sm:p-8"
+    >
+      {sectionKey === 'team' ? (
+        <img
+          src={photos.john.src}
+          alt={photos.john.alt}
+          className="mb-6 h-56 w-full rounded-[1.4rem] object-cover sm:h-72"
+        />
+      ) : null}
+      {sectionKey === 'kwaliteit' ? (
+        <img
+          src={photos.interior.src}
+          alt={photos.interior.alt}
+          className="mb-6 h-56 w-full rounded-[1.4rem] object-cover sm:h-72"
+        />
+      ) : null}
+      <h2 className="font-serif text-2xl text-navy">{title}</h2>
+      <div className="mt-4">
+        {sectionKey === 'huisregels' ? <HouseRulesBody text={body} /> : null}
+        {sectionKey === 'klachten' ? <ComplaintsBody text={body} /> : null}
+        {sectionKey !== 'huisregels' && sectionKey !== 'klachten' ? (
+          <div className="prose-site text-muted">
+            <div dangerouslySetInnerHTML={{ __html: toSafeHtml(body) }} />
+          </div>
+        ) : null}
+      </div>
+    </section>
   )
 }
