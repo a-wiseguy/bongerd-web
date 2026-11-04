@@ -5,9 +5,9 @@ const options: sanitizeHtmlLib.IOptions = {
   allowedAttributes: {
     a: ['href', 'target', 'rel'],
   },
-  allowedSchemes: ['http', 'https', 'mailto'],
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
   allowedSchemesByTag: {
-    a: ['http', 'https', 'mailto'],
+    a: ['http', 'https', 'mailto', 'tel'],
   },
   allowProtocolRelative: false,
   transformTags: {
