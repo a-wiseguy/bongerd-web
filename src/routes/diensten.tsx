@@ -53,7 +53,7 @@ function ServicesPage() {
             >
               <img src={photo.src} alt={photo.alt} className="h-44 w-full object-cover" />
               <div className="p-6 sm:p-8">
-                <h2 className="font-serif text-3xl text-navy">{service.title}</h2>
+                <h2 className="font-sans text-xl font-semibold tracking-tight text-navy">{service.title}</h2>
                 <p className="mt-2 font-medium text-teal">{service.summary}</p>
                 <div className="mt-4 text-muted">
                   <Prose text={service.body} />

@@ -104,7 +104,7 @@ function HomePage() {
 
       {announcements.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <h2 className="font-serif text-3xl text-navy">Actueel</h2>
+          <h2 className="font-serif text-2xl text-navy">Actueel</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {announcements.map((item) => (
               <article key={item.id} className="rounded-3xl border border-line bg-white p-6">
@@ -122,7 +122,7 @@ function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <div className="grid overflow-hidden rounded-[2rem] bg-navy text-white lg:grid-cols-[1.1fr_0.9fr]">
           <div className="px-6 py-10 sm:px-10">
-            <h2 className="font-serif text-3xl">{heading(copy, 'home.intro', 'Zelfstandig en dichtbij')}</h2>
+            <h2 className="font-serif text-2xl">{heading(copy, 'home.intro', 'Zelfstandig en dichtbij')}</h2>
             <div className="mt-4 max-w-3xl text-sky">
               <Prose text={text(copy, 'home.intro')} />
             </div>
@@ -140,7 +140,7 @@ function HomePage() {
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="font-serif text-3xl text-navy">Diensten</h2>
+          <h2 className="font-serif text-2xl text-navy">Diensten</h2>
           <Link to="/diensten" className="min-h-11 font-semibold text-navy underline-offset-4 hover:underline">
             Alle diensten
           </Link>
@@ -156,7 +156,7 @@ function HomePage() {
             >
               <img src={photo.src} alt="" className="h-36 w-full object-cover" />
               <div className="p-6">
-                <h3 className="font-serif text-2xl text-navy">{service.title}</h3>
+                <h3 className="font-sans text-xl font-semibold tracking-tight text-navy">{service.title}</h3>
                 <p className="mt-2 text-muted">{service.summary}</p>
               </div>
             </a>
@@ -168,7 +168,7 @@ function HomePage() {
       {news.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
           <div className="flex items-end justify-between">
-            <h2 className="font-serif text-3xl text-navy">Nieuws</h2>
+            <h2 className="font-serif text-2xl text-navy">Nieuws</h2>
             <Link to="/nieuws" className="min-h-11 font-semibold text-navy underline-offset-4 hover:underline">
               Al het nieuws
             </Link>

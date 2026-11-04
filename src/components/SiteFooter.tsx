@@ -32,7 +32,9 @@ export function SiteFooter() {
       />
       <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.35fr_1fr_1fr]">
         <div>
-          <p className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl">Apotheek De Bongerd</p>
+          <p className="font-serif-strong font-serif text-3xl leading-tight tracking-tight sm:text-4xl">
+            Apotheek De Bongerd
+          </p>
           <p className="mt-4 max-w-md text-base leading-relaxed text-sky">
             Zelfstandige apotheek met vaste teams in Kesteren, Ochten en Rhenen — dichtbij, met korte lijnen.
           </p>

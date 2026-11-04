@@ -87,17 +87,17 @@ body {
 .prose-site h3 {
   color: var(--color-navy);
   font-family: var(--font-serif);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 500;
+  line-height: 1.3;
   margin-top: 1.25rem;
 }
 
 .prose-site h2 {
-  font-size: 1.75rem;
+  font-size: 1.625rem;
 }
 
 .prose-site h3 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
 }
 
 .prose-lead p + p {
@@ -133,7 +133,12 @@ body {
 }
 
 .font-serif {
+  font-weight: 500;
   font-variant-numeric: lining-nums;
+}
+
+.font-serif-strong {
+  font-weight: 600;
 }
 
 .card-link {
