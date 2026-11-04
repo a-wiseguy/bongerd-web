@@ -9,6 +9,7 @@ import {
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
 import { MobileBar } from '@/components/MobileBar'
+import { ScrollToTop } from '@/components/ScrollToTop'
 import { getLocations } from '@/server/public'
 import { pharmacyJsonLd, seo } from '@/lib/seo'
 import appCss from '@/styles.css?url'
@@ -59,7 +60,10 @@ function RootComponent() {
   return (
     <RootDocument jsonLd={pharmacyJsonLd(locations)}>
       {isAdmin ? (
-        <Outlet />
+        <>
+          <Outlet />
+          <ScrollToTop />
+        </>
       ) : (
         <div className="flex min-h-dvh flex-col">
           <SiteHeader />
@@ -68,6 +72,7 @@ function RootComponent() {
           </main>
           <SiteFooter />
           <MobileBar locations={locations} />
+          <ScrollToTop aboveMobileBar />
         </div>
       )}
     </RootDocument>
