@@ -106,6 +106,21 @@ Zie `.env.example` voor een volledig voorbeeld.
 | `npm run db:seed` | Vul initiële content en admin-account (idempotent) |
 | `npm run typecheck` | TypeScript-controle |
 | `npm test` | Unit tests (openingstijden, tijdzones, slugs, sanitizer, JSON-LD) |
+| `npm run test:e2e` | Browsertests tegen een draaiende site (zie hieronder) |
+| `npm run e2e:smtp` | Lokale SMTP-sink die mails naar `e2e/.artifacts/mails.jsonl` schrijft |
+
+## Browsertests (e2e)
+
+`e2e/run.mjs` doorloopt de belangrijkste flows in Chrome: upload (formaat, EXIF/GPS, 10 MB), nieuws (aanmaken, inplannen, archief), mededelingen met einddatum, berichten (melding, afhandelen, bewaartermijn, verwijderen), openingstijden-validatie, volgorde diensten, niet-opgeslagen wijzigingen, accounts en sessies, opruimen van uploads.
+
+```bash
+npm run e2e:smtp &          # optioneel: controleert ook de e-mailmelding
+npm run dev                 # of: npm run build && npm start
+E2E_MAIL_LOG=e2e/.artifacts/mails.jsonl npm run test:e2e
+npm run test:e2e -- upload newsEditor   # alleen deze flows
+```
+
+De tests lezen `.env` (database, adminaccount) en gebruiken de lokale Chrome (`CHROME_PATH` om een ander pad te kiezen). Ze maken en verwijderen hun eigen testdata, maar raken ook gedeelde data (openingstijden, volgorde diensten): draai ze alleen tegen een dev- of CI-database. Een niet-lokale URL wordt geweigerd tenzij `E2E_ALLOW_REMOTE=1`. Bij een fout staat een screenshot in `e2e/.artifacts/`. In CI draaien ze tegen een productiebuild met MySQL en de SMTP-sink.
 
 ## Database-migraties
 
