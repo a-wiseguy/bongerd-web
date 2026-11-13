@@ -18,6 +18,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Route tree is up to date
+        run: git diff --exit-code src/routeTree.gen.ts
 
   migrations:
     runs-on: ubuntu-latest

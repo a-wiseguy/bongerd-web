@@ -7,8 +7,6 @@ dist
 .env
 *.log
 .DS_Store
-routeTree.gen.ts
-src/routeTree.gen.ts
 data/uploads/*
 !data/uploads/.gitkeep
 
