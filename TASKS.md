@@ -55,9 +55,10 @@ Legenda: **P0** kapot / fout gedrag · **P1** nodig voor productie · **P2** UX 
 
 Volgt uit de second-opinion review van ronde 1 (zie `REPORT.md`).
 
-- [ ] **Fouten onzichtbaar in productie.** Database onbereikbaar → bezoeker krijgt nette foutpagina, maar de server logt niets. → onverwachte fouten in server functions loggen (functienaam + fout, nooit formulierdata), validatiefouten en redirects niet.
-- [ ] **Foutpagina zonder telefoonnummers.** "Bel uw vestiging" zonder nummer, juist als de site plat ligt. → vestigingsgegevens als vaste fallback (gedeeld met de seed) op de foutpagina.
-- [ ] **Oud nieuws op de homepage.** Bericht uit januari 2022 staat als "Nieuws" op home; met twee berichten blijft een gat in het 3-koloms grid. → home toont alleen berichten van de laatste 12 maanden, layout past zich aan het aantal aan; `/nieuws` krijgt paginering.
-- [ ] **Wijzigingen kwijt bij wegnavigeren.** Editor nieuws/diensten waarschuwt niet bij niet-opgeslagen wijzigingen. → waarschuwing bij navigeren (router) en sluiten/verversen (browser).
-- [ ] **Verweesde uploads.** Foto geüpload maar niet opgeslagen → bestand blijft voor altijd op schijf. → periodiek opruimen: bestanden die nergens naar verwezen worden en ouder zijn dan 24 uur.
-- [ ] **Browsertests niet in de repo.** De flows die echte bugs vonden staan in `/tmp`. → `e2e/` met `npm run test:e2e`, configureerbaar via env, en een CI-job die ze tegen een productiebuild + MySQL + SMTP-sink draait.
+- [x] **Fouten onzichtbaar in productie.** Database onbereikbaar → bezoeker krijgt nette foutpagina, maar de server logt niets. → onverwachte fouten in server functions loggen (functienaam + fout, nooit formulierdata), validatiefouten en redirects niet.
+- [x] **Foutpagina zonder telefoonnummers.** "Bel uw vestiging" zonder nummer, juist als de site plat ligt. → vestigingsgegevens als vaste fallback (gedeeld met de seed) op de foutpagina.
+- [x] **Oud nieuws op de homepage.** Bericht uit januari 2022 staat als "Nieuws" op home; met twee berichten blijft een gat in het 3-koloms grid. → home toont alleen berichten van de laatste 12 maanden, layout past zich aan het aantal aan; `/nieuws` krijgt paginering.
+- [x] **Wijzigingen kwijt bij wegnavigeren.** Editor nieuws/diensten waarschuwt niet bij niet-opgeslagen wijzigingen. → waarschuwing bij navigeren (router) en sluiten/verversen (browser).
+- [x] **Verweesde uploads.** Foto geüpload maar niet opgeslagen → bestand blijft voor altijd op schijf. → periodiek opruimen: bestanden die nergens naar verwezen worden en ouder zijn dan 24 uur.
+- [x] **Browsertests niet in de repo.** De flows die echte bugs vonden staan in `/tmp`. → `e2e/` met `npm run test:e2e`, configureerbaar via env, en een CI-job die ze tegen een productiebuild + MySQL + SMTP-sink draait.
+- [x] **Kritieke beveiligingsmelding in TanStack Start** (GHSA-qx66-fv34-fjm8, reflected XSS; plus seroval-advisories). Gevonden tijdens ronde 2: de "Security audit"-job op `master` faalt hierdoor al sinds 3 november. → upgrade `@tanstack/react-start`/`react-router` en `sanitize-html`; productie-audit schoon.
