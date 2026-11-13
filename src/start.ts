@@ -3,6 +3,7 @@ import {
   createMiddleware,
   createStart,
 } from '@tanstack/react-start'
+import { describeError, isExpectedError } from '@/lib/serverLog'
 
 function securityHeaders() {
   const secureCookies = process.env.COOKIE_SECURE === 'true'
@@ -45,9 +46,21 @@ function securityHeaders() {
   })
 }
 
+const logServerErrors = createMiddleware({ type: 'function' }).server(async ({ next, serverFnMeta }) => {
+  try {
+    return await next()
+  } catch (error) {
+    if (!isExpectedError(error)) {
+      console.error(`[server] ${serverFnMeta?.name ?? 'serverFn'} failed: ${describeError(error)}`)
+    }
+    throw error
+  }
+})
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [
     createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === 'serverFn' }),
     securityHeaders(),
   ],
+  functionMiddleware: [logServerErrors],
 }))
