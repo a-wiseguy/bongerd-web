@@ -1,0 +1,50 @@
+/** static practice data: seeds the db and backs the error page when the db is down */
+export const locationSeed = [
+  {
+    slug: 'kesteren',
+    name: 'Kesteren',
+    address: 'Hoofdstraat 29',
+    postal: '4041 AA',
+    city: 'Kesteren',
+    phone: '0488 482 133',
+    phoneTel: '+31488482133',
+    email: 'info@apotheekdebongerd.nl',
+    zorgmail: 'apotheekdebongerd@zorgmail.nl',
+    mapsQuery: 'Hoofdstraat 29, 4041 AA Kesteren',
+    sortOrder: 1,
+    close: '17:00',
+  },
+  {
+    slug: 'ochten',
+    name: 'Ochten',
+    address: 'Burgemeester Houtkoperlaan 3',
+    postal: '4051 EW',
+    city: 'Ochten',
+    phone: '0344 642 300',
+    phoneTel: '+31344642300',
+    email: 'info@apotheekdebongerd.nl',
+    zorgmail: 'apotheekdebongerd@zorgmail.nl',
+    mapsQuery: 'Burgemeester Houtkoperlaan 3, 4051 EW Ochten',
+    sortOrder: 2,
+    close: '17:30',
+  },
+  {
+    slug: 'rhenen',
+    name: 'Rhenen',
+    address: 'Valleiweg 10',
+    postal: '3911 DD',
+    city: 'Rhenen',
+    phone: '0317 796 000',
+    phoneTel: '+31317796000',
+    email: 'info@apotheekdebongerd.nl',
+    zorgmail: 'apotheekdebongerdrhenen@zorgmail.nl',
+    mapsQuery: 'Valleiweg 10, 3911 DD Rhenen',
+    sortOrder: 3,
+    close: '17:30',
+  },
+] as const
+
+export const emergencyPharmacies = [
+  { area: 'Kesteren, Ochten en Opheusden', name: 'Regioapotheek Rivierenland', phone: '0900 600 6666', phoneTel: '+319006006666' },
+  { area: 'Rhenen', name: 'Dienstapotheek Ede', phone: '0318 434 945', phoneTel: '+31318434945' },
+] as const

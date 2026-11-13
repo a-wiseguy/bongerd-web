@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { emergencyPharmacies, locationSeed } from '@/lib/practice'
 import {
   HeadContent,
   Outlet,
@@ -71,14 +72,14 @@ function RootComponent() {
 function RootError({ reset }: { reset: () => void }) {
   return (
     <RootDocument>
-      <div className="flex min-h-dvh items-center bg-paper px-4">
-        <div className="mx-auto w-full max-w-xl py-16">
+      <main className="min-h-dvh bg-paper px-4">
+        <div className="mx-auto w-full max-w-2xl py-16">
           <div className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-card">
             <img src="/brand/logo.png" alt="Apotheek De Bongerd" className="h-12 w-auto" />
           </div>
           <h1 className="mt-6 font-serif text-4xl text-navy">De pagina kan nu niet geladen worden</h1>
           <p className="mt-3 text-muted">
-            Er ging iets mis bij het ophalen. Probeer het opnieuw. Blijft dit gebeuren, bel dan uw vestiging.
+            Er ging iets mis aan onze kant. Probeer het zo opnieuw. Heeft u een vraag, bel dan gerust uw vestiging.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -95,8 +96,35 @@ function RootError({ reset }: { reset: () => void }) {
               Naar home
             </a>
           </div>
+          <section aria-labelledby="error-phones" className="mt-10 rounded-[1.5rem] border border-line bg-white p-5 sm:p-6">
+            <h2 id="error-phones" className="font-serif text-2xl text-navy">
+              Bel ons
+            </h2>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+              {locationSeed.map((loc) => (
+                <li key={loc.slug}>
+                  <p className="font-semibold text-ink">{loc.name}</p>
+                  <a href={`tel:${loc.phoneTel}`} className="inline-flex min-h-11 items-center font-semibold text-navy underline underline-offset-4">
+                    {loc.phone}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <h3 className="mt-5 border-t border-line pt-4 font-semibold text-navy">Spoed buiten openingstijden</h3>
+            <ul className="mt-2 grid gap-2 text-sm">
+              {emergencyPharmacies.map((item) => (
+                <li key={item.name}>
+                  <span className="text-muted">Vanuit {item.area}:</span>{' '}
+                  <span className="font-semibold text-ink">{item.name}</span>,{' '}
+                  <a href={`tel:${item.phoneTel}`} className="font-semibold text-navy underline underline-offset-4">
+                    {item.phone}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-      </div>
+      </main>
     </RootDocument>
   )
 }
