@@ -16,6 +16,8 @@ import { amsterdamNow } from '@/lib/hours'
 import { toSafeHtml } from '@/lib/sanitize.server'
 import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uploads'
 import { getAdminUserImpl } from './auth.server'
+import { purgeExpiredMessages, retentionDays } from './contact.server'
+import { notificationsEnabled } from '@/lib/mail.server'
 
 async function requireAdmin() {
   const user = await getAdminUserImpl()
@@ -303,12 +305,23 @@ export async function deleteServiceImpl(id: string) {
 
 export async function getAdminMessagesImpl() {
   await requireAdmin()
-  return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt))
+  await purgeExpiredMessages()
+  const items = await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt))
+  return { items, retentionDays: retentionDays(), notifications: notificationsEnabled() }
 }
 
 export async function setMessageHandledImpl(data: { id: string; handled: boolean }) {
   await requireAdmin()
-  await db.update(contactSubmissions).set({ handled: data.handled }).where(eq(contactSubmissions.id, data.id))
+  await db
+    .update(contactSubmissions)
+    .set({ handled: data.handled, handledAt: data.handled ? new Date() : null })
+    .where(eq(contactSubmissions.id, data.id))
+  return { ok: true }
+}
+
+export async function deleteMessageImpl(id: string) {
+  await requireAdmin()
+  await db.delete(contactSubmissions).where(eq(contactSubmissions.id, id))
   return { ok: true }
 }
 

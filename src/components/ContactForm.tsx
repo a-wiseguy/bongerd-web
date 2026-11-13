@@ -1,17 +1,9 @@
 import { useId, useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { fieldErrorsFromThrown } from '@/lib/formErrors'
+import { contactSubjects as subjects } from '@/lib/contactSubjects'
 import { submitContact } from '@/server/contact'
 
-const subjects = [
-  'Algemene vraag',
-  'Afspraak maken',
-  'Herhaalrecept',
-  'Inschrijven / wijziging',
-  'Medicijnpaspoort',
-  'Bezorging',
-  'Anders',
-]
 
 type FieldKey = 'name' | 'email' | 'phone' | 'subject' | 'message'
 

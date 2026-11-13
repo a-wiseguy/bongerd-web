@@ -218,6 +218,13 @@ export const setMessageHandled = createServerFn({ method: 'POST' })
     return setMessageHandledImpl(data)
   })
 
+export const deleteMessage = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { deleteMessageImpl } = await import('./admin.server')
+    return deleteMessageImpl(data.id)
+  })
+
 export const uploadImage = createServerFn({ method: 'POST' })
   .validator((data) => {
     if (!(data instanceof FormData)) throw new Error('Expected FormData')

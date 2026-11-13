@@ -37,6 +37,18 @@ export function formatNlDate(value: Date | string) {
   }).format(date)
 }
 
+export function formatNlDateTime(value: Date | string) {
+  const date = typeof value === 'string' ? new Date(value) : value
+  return new Intl.DateTimeFormat('nl-NL', {
+    timeZone: 'Europe/Amsterdam',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
 /** yyyy-mm-dd calendar date → "donderdag 25 december" */
 export function formatNlDay(value: string, withYear = false) {
   return new Intl.DateTimeFormat('nl-NL', {
