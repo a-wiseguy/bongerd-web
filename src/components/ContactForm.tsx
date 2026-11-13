@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { useHydrated, useRouter } from '@tanstack/react-router'
 import { fieldErrorsFromThrown } from '@/lib/formErrors'
 import { contactSubjects as subjects } from '@/lib/contactSubjects'
 import { submitContact } from '@/server/contact'
@@ -13,12 +13,14 @@ const fieldClass = (invalid: boolean) =>
 export function ContactForm() {
   const router = useRouter()
   const statusId = useId()
+  const hydrated = useHydrated()
   const [status, setStatus] = useState<'idle' | 'busy' | 'ok' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({})
 
   return (
     <form
+      method="post"
       className="grid gap-4"
       noValidate
       onSubmit={async (event) => {
@@ -167,7 +169,7 @@ export function ContactForm() {
       ) : null}
       <button
         type="submit"
-        disabled={status === 'busy'}
+        disabled={status === 'busy' || !hydrated}
         className="min-h-12 rounded-full bg-navy px-6 font-semibold text-white disabled:opacity-60"
       >
         {status === 'busy' ? 'Verzenden…' : 'Versturen'}

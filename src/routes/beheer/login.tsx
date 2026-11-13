@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useHydrated } from '@tanstack/react-router'
 import { useState } from 'react'
 import { loginFn } from '@/server/auth'
 import { btnClass, fieldClass } from '@/components/AdminShell'
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/beheer/login')({
 function LoginPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const hydrated = useHydrated()
 
   return (
     <main className="relative flex min-h-dvh items-center justify-center px-4">
@@ -21,6 +22,7 @@ function LoginPage() {
       />
       <div className="absolute inset-0 bg-navy/55" aria-hidden="true" />
       <form
+        method="post"
         className="relative z-10 w-full max-w-md rounded-[1.8rem] border border-line bg-white p-8"
         aria-labelledby="login-title"
         onSubmit={async (event) => {
@@ -76,7 +78,7 @@ function LoginPage() {
             {error}
           </p>
         ) : null}
-        <button type="submit" disabled={busy} className={`${btnClass} mt-6 w-full`}>
+        <button type="submit" disabled={busy || !hydrated} className={`${btnClass} mt-6 w-full`}>
           {busy ? 'Inloggen…' : 'Inloggen'}
         </button>
       </form>
