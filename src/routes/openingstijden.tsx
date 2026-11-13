@@ -3,7 +3,7 @@ import { OpenBadge, PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, formatNlDate, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
 import { formatClock, weekdayName } from '@/lib/hours'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getHoursBundle, getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/openingstijden')({
@@ -11,13 +11,13 @@ export const Route = createFileRoute('/openingstijden')({
     blocks: await getPageBlocks({ data: 'openingstijden' }),
     hours: await getHoursBundle(),
   }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Openingstijden',
       description:
         'Openingstijden van Apotheek De Bongerd in Kesteren, Ochten en Rhenen, plus dienstapotheek buiten openingstijden.',
+      path: '/openingstijden',
     }),
-  }),
   component: HoursPage,
 })
 
@@ -99,7 +99,7 @@ function HoursPage() {
           <div className="p-8">
             <h2 className="font-serif text-3xl">{heading(copy, 'openingstijden.dienst', 'Buiten openingstijden')}</h2>
             <div className="mt-4 max-w-3xl text-sky">
-              <Prose text={text(copy, 'openingstijden.dienst')} />
+              <Prose html={text(copy, 'openingstijden.dienst')} />
             </div>
           </div>
           <img

@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos, serviceImage } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { serviceHrefKind } from '@/lib/serviceHref'
 import { getPageBlocks, getPublishedServices } from '@/server/public'
 
@@ -11,13 +11,13 @@ export const Route = createFileRoute('/diensten')({
     blocks: await getPageBlocks({ data: 'diensten' }),
     services: await getPublishedServices(),
   }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Diensten',
       description:
         'Herhaalrecepten, bezorgdienst, afhaalautomaat, baxterrollen, medicatiebegeleiding en meer bij Apotheek De Bongerd.',
+      path: '/diensten',
     }),
-  }),
   component: ServicesPage,
 })
 
@@ -56,7 +56,7 @@ function ServicesPage() {
                 <h2 className="font-serif text-3xl text-navy">{service.title}</h2>
                 <p className="mt-2 font-medium text-teal">{service.summary}</p>
                 <div className="mt-4 text-muted">
-                  <Prose text={service.body} />
+                  <Prose html={service.body} />
                 </div>
                 {hrefKind === 'external' ? (
                   <a

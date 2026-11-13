@@ -3,7 +3,7 @@ import { ContactForm } from '@/components/ContactForm'
 import { OpenBadge, PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, heading, mapsHref, text } from '@/lib/format'
 import { photos } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getHoursBundle, getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/contact')({
@@ -11,13 +11,13 @@ export const Route = createFileRoute('/contact')({
     blocks: await getPageBlocks({ data: 'contact' }),
     hours: await getHoursBundle(),
   }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Contact',
       description:
         'Adres, telefoon, e-mail, route en contactformulier van Apotheek De Bongerd in Kesteren, Ochten en Rhenen.',
+      path: '/contact',
     }),
-  }),
   component: ContactPage,
 })
 
@@ -77,7 +77,7 @@ function ContactPage() {
           <div className="p-6 sm:p-8">
           <h2 className="font-serif text-3xl text-navy">{heading(copy, 'contact.form', 'Bericht sturen')}</h2>
           <div className="mt-3 rounded-2xl bg-mint p-4 text-sm text-teal">
-            <Prose text={text(copy, 'contact.form')} />
+            <Prose html={text(copy, 'contact.form')} />
           </div>
           <div className="mt-6">
             <ContactForm />

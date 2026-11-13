@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { AdminShell } from '@/components/AdminShell'
 import { getAdminUser } from '@/server/auth'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/beheer')({
   loader: async ({ location }) => {
@@ -11,12 +11,12 @@ export const Route = createFileRoute('/beheer')({
     if (user && isLogin) throw redirect({ to: '/beheer' })
     return { user }
   },
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Beheer',
       description: 'Beheeromgeving van Apotheek De Bongerd.',
+      noindex: true,
     }),
-  }),
   component: BeheerLayout,
 })
 

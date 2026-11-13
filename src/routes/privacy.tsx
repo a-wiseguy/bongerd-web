@@ -2,17 +2,17 @@ import { createFileRoute } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/privacy')({
   loader: () => getPageBlocks({ data: 'privacy' }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Privacy',
       description: 'Privacybeleid van Apotheek De Bongerd.',
+      path: '/privacy',
     }),
-  }),
   component: PrivacyPage,
 })
 
@@ -32,7 +32,7 @@ function PrivacyPage() {
         <div className="overflow-hidden rounded-[1.8rem] border border-line bg-white">
           <img src={photos.consult.src} alt={photos.consult.alt} className="h-48 w-full object-cover" />
           <div className="p-6 sm:p-8 text-muted">
-            <Prose text={text(copy, 'privacy.intro')} />
+            <Prose html={text(copy, 'privacy.intro')} />
           </div>
         </div>
       </div>

@@ -99,6 +99,7 @@ function MessageCard({
               await router.invalidate()
             } catch (err) {
               setError(staffErrorMessage(err, 'Status bijwerken mislukt. Probeer het opnieuw.'))
+            } finally {
               setBusy(false)
             }
           }}

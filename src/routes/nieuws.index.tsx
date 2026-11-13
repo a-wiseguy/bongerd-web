@@ -2,20 +2,20 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { PageHero } from '@/components/PageHero'
 import { blockImage, blockMap, formatNlDate, heading, text } from '@/lib/format'
 import { newsImage, photos } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getPageBlocks, getPublishedNews } from '@/server/public'
 
-export const Route = createFileRoute('/nieuws')({
+export const Route = createFileRoute('/nieuws/')({
   loader: async () => ({
     blocks: await getPageBlocks({ data: 'nieuws' }),
     posts: await getPublishedNews(),
   }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Nieuws',
       description: 'Nieuws en mededelingen van Apotheek De Bongerd.',
+      path: '/nieuws',
     }),
-  }),
   component: NewsList,
 })
 

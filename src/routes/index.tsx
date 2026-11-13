@@ -3,19 +3,18 @@ import { ArrowRight, MapPinned, Phone, Repeat } from 'lucide-react'
 import { OpenBadge, Photo, Prose } from '@/components/PageHero'
 import { blockMap, heading, mapsHref, text } from '@/lib/format'
 import { newsImage, photos, serviceImage } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getHomeData } from '@/server/public'
 
 export const Route = createFileRoute('/')({
   loader: () => getHomeData(),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Home',
       description:
         'Apotheek De Bongerd in Kesteren, Ochten en Rhenen. Nu open of gesloten, herhaalrecepten, route en contact.',
-      url: '/',
+      path: '/',
     }),
-  }),
   component: HomePage,
 })
 
@@ -36,7 +35,7 @@ function HomePage() {
               {heading(copy, 'home.hero', 'Zorg om de hoek')}
             </h1>
             <div className="mt-5 max-w-xl text-xl text-muted">
-              <Prose text={text(copy, 'home.hero')} />
+              <Prose html={text(copy, 'home.hero')} />
             </div>
             <div className="mt-6">
               <OpenBadge
@@ -111,7 +110,7 @@ function HomePage() {
                 <p className="text-sm font-semibold tracking-wide text-teal">Mededeling</p>
                 <h3 className="mt-2 font-serif text-2xl text-navy">{item.title}</h3>
                 <div className="mt-2 text-muted">
-                  <Prose text={item.body} />
+                  <Prose html={item.body} />
                 </div>
               </article>
             ))}
@@ -124,7 +123,7 @@ function HomePage() {
           <div className="px-6 py-10 sm:px-10">
             <h2 className="font-serif text-3xl">{heading(copy, 'home.intro', 'Zelfstandig en dichtbij')}</h2>
             <div className="mt-4 max-w-3xl text-sky">
-              <Prose text={text(copy, 'home.intro')} />
+              <Prose html={text(copy, 'home.intro')} />
             </div>
             <Link to="/over-ons" className="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold underline underline-offset-4">
               Meer over ons <ArrowRight className="h-4 w-4" aria-hidden />

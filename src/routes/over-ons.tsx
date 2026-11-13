@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
 import { blockImage, blockMap, heading, text } from '@/lib/format'
 import { photos } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 import { getLocations, getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/over-ons')({
@@ -10,13 +10,13 @@ export const Route = createFileRoute('/over-ons')({
     blocks: await getPageBlocks({ data: 'over-ons' }),
     locations: await getLocations(),
   }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Over ons',
       description:
         'Zelfstandige HKZ-gecertificeerde apotheek met vestigingen in Kesteren, Ochten en Rhenen. Team, kwaliteit, inschrijven, huisregels en klachten.',
+      path: '/over-ons',
     }),
-  }),
   component: OverOns,
 })
 
@@ -57,7 +57,7 @@ function OverOns() {
                 ) : null}
                 <h2 className="font-serif text-3xl text-navy">{heading(copy, `over-ons.${key}`)}</h2>
                 <div className="mt-4 text-muted">
-                  <Prose text={text(copy, `over-ons.${key}`)} />
+                  <Prose html={text(copy, `over-ons.${key}`)} />
                 </div>
               </section>
             ))}

@@ -1,5 +1,5 @@
 import { redirect } from '@tanstack/react-router'
-import { asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, like } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import {
   announcements,
@@ -11,8 +11,9 @@ import {
   services,
   siteContent,
 } from '@/lib/schema'
-import { slugify } from '@/lib/format'
-import { sanitizeForStorage } from '@/lib/sanitize'
+import { nextFreeSlug, slugify } from '@/lib/format'
+import { amsterdamNow } from '@/lib/hours'
+import { toSafeHtml } from '@/lib/sanitize.server'
 import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uploads'
 import { getAdminUserImpl } from './auth.server'
 
@@ -31,6 +32,14 @@ function cleanImage(url?: string | null) {
 
 function cleanAlt(alt?: string | null) {
   return alt?.trim() || null
+}
+
+async function uniqueSlug(table: typeof newsPosts | typeof services, base: string, ownId?: string) {
+  const rows = await db
+    .select({ id: table.id, slug: table.slug })
+    .from(table)
+    .where(like(table.slug, `${base}%`))
+  return nextFreeSlug(base, rows.filter((row) => row.id !== ownId).map((row) => row.slug))
 }
 
 export async function getAdminDashboardImpl() {
@@ -71,7 +80,7 @@ export async function saveContentBlockImpl(data: {
     .update(siteContent)
     .set({
       title: data.title,
-      body: sanitizeForStorage(data.body),
+      body: toSafeHtml(data.body),
       imageUrl: nextUrl,
       imageAlt: cleanAlt(data.imageAlt),
     })
@@ -84,24 +93,26 @@ export async function getAdminHoursImpl() {
   const locs = await db.select().from(locations).orderBy(asc(locations.sortOrder))
   const hours = await db.select().from(openingHours)
   const exceptions = await db.select().from(openingExceptions).orderBy(asc(openingExceptions.date))
-  return { locations: locs, hours, exceptions }
+  return { locations: locs, hours, exceptions, today: amsterdamNow().date }
 }
 
-export async function saveOpeningHourImpl(data: {
-  id: string
-  opens: string | null
-  closes: string | null
-  isClosed: boolean
+export async function saveWeekHoursImpl(data: {
+  locationId: string
+  days: Array<{ id: string; opens: string | null; closes: string | null; isClosed: boolean }>
 }) {
   await requireAdmin()
-  await db
-    .update(openingHours)
-    .set({
-      opens: data.isClosed ? null : data.opens,
-      closes: data.isClosed ? null : data.closes,
-      isClosed: data.isClosed,
-    })
-    .where(eq(openingHours.id, data.id))
+  await db.transaction(async (tx) => {
+    for (const day of data.days) {
+      await tx
+        .update(openingHours)
+        .set({
+          opens: day.isClosed ? null : day.opens,
+          closes: day.isClosed ? null : day.closes,
+          isClosed: day.isClosed,
+        })
+        .where(and(eq(openingHours.id, day.id), eq(openingHours.locationId, data.locationId)))
+    }
+  })
   return { ok: true }
 }
 
@@ -149,7 +160,7 @@ export async function saveAnnouncementImpl(data: {
   published: boolean
 }) {
   await requireAdmin()
-  const body = sanitizeForStorage(data.body)
+  const body = toSafeHtml(data.body)
   if (data.id) {
     await db
       .update(announcements)
@@ -187,8 +198,8 @@ export async function saveNewsImpl(data: {
   slug?: string
 }) {
   await requireAdmin()
-  const slug = slugify(data.slug || data.title)
-  const body = sanitizeForStorage(data.body)
+  const slug = await uniqueSlug(newsPosts, slugify(data.slug || data.title, 'bericht'), data.id)
+  const body = toSafeHtml(data.body)
   const nextUrl = cleanImage(data.imageUrl)
   if (data.id) {
     const [existing] = await db.select().from(newsPosts).where(eq(newsPosts.id, data.id)).limit(1)
@@ -246,8 +257,7 @@ export async function saveServiceImpl(data: {
   sortOrder: number
 }) {
   await requireAdmin()
-  const slug = slugify(data.title)
-  const body = sanitizeForStorage(data.body)
+  const body = toSafeHtml(data.body)
   const nextUrl = cleanImage(data.imageUrl)
   if (data.id) {
     const [existing] = await db.select().from(services).where(eq(services.id, data.id)).limit(1)
@@ -277,9 +287,9 @@ export async function saveServiceImpl(data: {
       href: data.href || null,
       published: data.published,
       sortOrder: data.sortOrder,
-      slug,
+      slug: await uniqueSlug(services, slugify(data.title, 'dienst')),
     })
-  }
+     }
   return { ok: true }
 }
 

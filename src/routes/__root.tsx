@@ -9,35 +9,38 @@ import {
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
 import { MobileBar } from '@/components/MobileBar'
-import { getLocations } from '@/server/public'
-import { pharmacyJsonLd, seo } from '@/lib/seo'
+import { getSiteShell } from '@/server/public'
+import { pageHead } from '@/lib/seo'
 import appCss from '@/styles.css?url'
 
 export const Route = createRootRoute({
-  loader: () => getLocations(),
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      ...seo({
-        title: 'Apotheek De Bongerd',
-        description:
-          'Zelfstandige apotheek in Kesteren, Ochten en Rhenen. Openingstijden, herhaalrecepten, bezorging en persoonlijk advies.',
-      }),
-    ],
-    links: [
-      { rel: 'stylesheet', href: appCss },
-      {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap',
-      },
-      { rel: 'icon', href: '/favicon.png', type: 'image/png' },
-      { rel: 'apple-touch-icon', href: '/favicon.png' },
-    ],
-  }),
+  loader: () => getSiteShell(),
+  staleTime: 5 * 60 * 1000,
+  head: (ctx) => {
+    const { meta, links } = pageHead(ctx, {
+      title: 'Apotheek De Bongerd',
+      description:
+        'Zelfstandige apotheek in Kesteren, Ochten en Rhenen. Openingstijden, herhaalrecepten, bezorging en persoonlijk advies.',
+    })
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'theme-color', content: '#001689' },
+        ...meta,
+      ],
+      links: [
+        { rel: 'stylesheet', href: appCss },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap',
+        },
+        { rel: 'icon', href: '/favicon.png', type: 'image/png' },
+        { rel: 'apple-touch-icon', href: '/favicon.png' },
+        ...links,
+      ],
+    }
+  },
   component: RootComponent,
   errorComponent: RootError,
   notFoundComponent: () => (
@@ -52,18 +55,18 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
-  const locations = Route.useLoaderData()
+  const { locations, jsonLd } = Route.useLoaderData()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isAdmin = pathname.startsWith('/beheer')
 
   return (
-    <RootDocument jsonLd={pharmacyJsonLd(locations)}>
+    <RootDocument jsonLd={isAdmin ? undefined : jsonLd}>
       {isAdmin ? (
         <Outlet />
       ) : (
         <div className="flex min-h-dvh flex-col">
           <SiteHeader />
-          <main id="inhoud" tabIndex={-1} className="flex-1">
+          <main id="inhoud" tabIndex={-1} className="flex-1 outline-none">
             <Outlet />
           </main>
           <SiteFooter />
@@ -107,20 +110,7 @@ function RootError({ reset }: { reset: () => void }) {
   )
 }
 
-function RootDocument({
-  children,
-  jsonLd,
-}: {
-  children: ReactNode
-  jsonLd?: unknown
-}) {
-  const jsonLdScript =
-    jsonLd == null
-      ? null
-      : JSON.stringify(jsonLd).replace(/[<>&]/g, (character) =>
-          ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026' })[character]!,
-        )
-
+function RootDocument({ children, jsonLd }: { children: ReactNode; jsonLd?: string }) {
   return (
     <html lang="nl">
       <head>
@@ -128,9 +118,7 @@ function RootDocument({
       </head>
       <body>
         {children}
-        {jsonLdScript ? (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript }} />
-        ) : null}
+        {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} /> : null}
         <Scripts />
       </body>
     </html>
