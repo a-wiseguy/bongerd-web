@@ -120,7 +120,7 @@ E2E_MAIL_LOG=e2e/.artifacts/mails.jsonl npm run test:e2e
 npm run test:e2e -- upload newsEditor   # alleen deze flows
 ```
 
-De tests lezen `.env` (database, adminaccount) en gebruiken de lokale Chrome (`CHROME_PATH` om een ander pad te kiezen). Ze maken en verwijderen hun eigen testdata, maar raken ook gedeelde data (openingstijden, volgorde diensten): draai ze alleen tegen een dev- of CI-database. Een niet-lokale URL wordt geweigerd tenzij `E2E_ALLOW_REMOTE=1`. Bij een fout staat een screenshot in `e2e/.artifacts/`. In CI draaien ze tegen een productiebuild met MySQL en de SMTP-sink.
+De tests lezen `.env` (database, adminaccount) en gebruiken de lokale Chrome (`CHROME_PATH` om een ander pad te kiezen). Ze maken en verwijderen hun eigen testdata, maar raken ook gedeelde data (openingstijden, volgorde diensten): draai ze alleen tegen een dev- of CI-database. Een niet-lokale URL wordt geweigerd tenzij `E2E_ALLOW_REMOTE=1`. Bij een fout staat een screenshot in `e2e/.artifacts/` (`E2E_VERBOSE=1` toont de volledige foutmelding). In CI draaien ze tegen een productiebuild met MySQL en de SMTP-sink.
 
 ## Database-migraties
 

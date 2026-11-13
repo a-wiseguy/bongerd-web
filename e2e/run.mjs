@@ -18,6 +18,8 @@ try {
 } catch {}
 
 const base = (process.env.E2E_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+// canonical links use the public origin, not the address under test
+const siteUrl = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
 if (!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base) && process.env.E2E_ALLOW_REMOTE !== '1') {
   console.error(`refusing to run against ${base}; set E2E_ALLOW_REMOTE=1 for a non-local test server`)
   process.exit(2)
@@ -214,7 +216,7 @@ const tests = {
       await page.waitForURL(/\?pagina=2$/)
       await page.getByText('Pagina 2 van').waitFor({ timeout: 5000 })
       assert.equal(await page.locator('main li a[href^="/nieuws/"]').count(), live - 12)
-      assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), `${base}/nieuws?pagina=2`)
+      assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), `${siteUrl}/nieuws?pagina=2`)
       assert.equal(await page.title(), 'Nieuws – pagina 2 · Apotheek De Bongerd')
       await page.getByRole('link', { name: 'Nieuwere berichten' }).click()
       await page.waitForURL(/\/nieuws$/)
@@ -495,7 +497,7 @@ for (const [name, fn] of Object.entries(tests)) {
     console.log(`ok   ${name}${errors.length ? `  (console: ${errors.slice(0, 3).join(' | ').slice(0, 300)})` : ''}`)
   } catch (err) {
     failed++
-    console.log(`FAIL ${name}: ${err.message.split('\n').filter(Boolean).slice(0, 4).join(' | ')}`)
+    console.log(`FAIL ${name}: ${err.message.split('\n').filter(Boolean).slice(0, process.env.E2E_VERBOSE ? 40 : 4).join(' | ')}`)
     await page.screenshot({ path: path.join(out, `fail-${name}.png`), fullPage: true }).catch(() => {})
   }
 }

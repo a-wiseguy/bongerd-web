@@ -54,7 +54,13 @@ export function AdminForm({
   const dirty = useRef(false)
 
   useBlocker({
-    shouldBlockFn: () => warnUnsaved && dirty.current && !window.confirm(UNSAVED_PROMPT),
+    shouldBlockFn: () => {
+      if (!warnUnsaved || !dirty.current) return false
+      if (!window.confirm(UNSAVED_PROMPT)) return true
+      // old page stays mounted until next loader resolves; reload then must not re-ask
+      dirty.current = false
+      return false
+    },
     enableBeforeUnload: () => warnUnsaved && dirty.current,
   })
 
