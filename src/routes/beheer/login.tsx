@@ -2,8 +2,12 @@ import { createFileRoute, useHydrated } from '@tanstack/react-router'
 import { useState } from 'react'
 import { loginFn } from '@/server/auth'
 import { btnClass, fieldClass } from '@/components/AdminShell'
+import { Img } from '@/components/Img'
+import { photos } from '@/lib/images'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/beheer/login')({
+  head: (ctx) => pageHead(ctx, { title: 'Inloggen · Beheer', description: 'Inloggen voor het apotheekteam.', noindex: true }),
   component: LoginPage,
 })
 
@@ -14,12 +18,7 @@ function LoginPage() {
 
   return (
     <main className="relative flex min-h-dvh items-center justify-center px-4">
-      <img
-        src="/images/orchard.jpg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <Img image={photos.orchard} decorative priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-navy/55" aria-hidden="true" />
       <form
         method="post"

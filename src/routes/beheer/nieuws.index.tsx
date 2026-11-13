@@ -47,7 +47,7 @@ function NewsAdminList() {
                     <ImageOff className="h-4 w-4" aria-hidden />
                   </span>
                 )}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-52">
                   <Link
                     to="/beheer/nieuws/$id"
                     params={{ id: post.id }}

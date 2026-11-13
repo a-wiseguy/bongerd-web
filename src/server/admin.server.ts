@@ -1,5 +1,5 @@
 import { redirect } from '@tanstack/react-router'
-import { and, asc, desc, eq, like, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, isNull, like, lte, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import {
   announcements,
@@ -12,11 +12,12 @@ import {
   siteContent,
 } from '@/lib/schema'
 import { nextFreeSlug, slugify } from '@/lib/format'
-import { amsterdamNow, fromAmsterdamInput, publishWindow } from '@/lib/hours'
+import { addDays, amsterdamNow, fromAmsterdamInput, publishWindow } from '@/lib/hours'
 import { toSafeHtml } from '@/lib/sanitize.server'
 import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uploads'
 import { getAdminUserImpl } from './auth.server'
 import { purgeExpiredMessages, retentionDays } from './contact.server'
+import { loadHoursBundle } from './public.server'
 import { notificationsEnabled } from '@/lib/mail.server'
 
 async function requireAdmin() {
@@ -46,17 +47,49 @@ async function uniqueSlug(table: typeof newsPosts | typeof services, base: strin
 
 export async function getAdminDashboardImpl() {
   await requireAdmin()
-  const [openMessages, news, serviceList, anns] = await Promise.all([
-    db.select().from(contactSubmissions).where(eq(contactSubmissions.handled, false)),
-    db.select().from(newsPosts),
-    db.select().from(services),
-    db.select().from(announcements),
-  ])
+  const now = new Date()
+  const today = amsterdamNow().date
+  const total = sql<number>`count(*)`
+  const count = async (rows: Promise<Array<{ n: number }>>) => Number((await rows)[0]?.n ?? 0)
+  const [openMessages, latestMessages, newsLive, newsScheduled, activeAnnouncements, liveServices, bundles] =
+    await Promise.all([
+      count(db.select({ n: total }).from(contactSubmissions).where(eq(contactSubmissions.handled, false))),
+      db
+        .select({ id: contactSubmissions.id, subject: contactSubmissions.subject, createdAt: contactSubmissions.createdAt })
+        .from(contactSubmissions)
+        .where(eq(contactSubmissions.handled, false))
+        .orderBy(desc(contactSubmissions.createdAt))
+        .limit(3),
+      count(db.select({ n: total }).from(newsPosts).where(and(eq(newsPosts.published, true), lte(newsPosts.publishedAt, now)))),
+      count(db.select({ n: total }).from(newsPosts).where(and(eq(newsPosts.published, true), gt(newsPosts.publishedAt, now)))),
+      count(
+        db
+          .select({ n: total })
+          .from(announcements)
+          .where(
+            and(
+              eq(announcements.published, true),
+              or(isNull(announcements.visibleUntil), gte(announcements.visibleUntil, today)),
+            ),
+          ),
+      ),
+      count(db.select({ n: total }).from(services).where(eq(services.published, true))),
+      loadHoursBundle(),
+    ])
+  const soon = addDays(today, 14)
   return {
-    openMessages: openMessages.length,
-    news: news.length,
-    services: serviceList.length,
-    announcements: anns.length,
+    openMessages,
+    latestMessages,
+    newsLive,
+    newsScheduled,
+    activeAnnouncements,
+    liveServices,
+    locations: bundles.map((item) => ({
+      id: item.location.id,
+      name: item.location.name,
+      status: item.status,
+      exceptions: item.exceptions.filter((day) => day.date <= soon).slice(0, 3),
+    })),
   }
 }
 

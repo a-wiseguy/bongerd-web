@@ -51,7 +51,7 @@ export function ImageField({
       {url ? (
         <img src={url} alt={alt || ''} className="h-40 w-full rounded-xl object-cover" />
       ) : (
-        <p className="text-sm text-muted">Geen afbeelding — openbare fallback blijft actief.</p>
+        <p className="text-sm text-muted">Geen eigen foto: de site toont een standaardfoto.</p>
       )}
       <input type="hidden" name={name} value={url} />
       <label className="grid gap-1">

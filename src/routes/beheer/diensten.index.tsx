@@ -62,7 +62,7 @@ function ServicesAdminList() {
           {items.map((item, index) => (
             <li key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 hover:bg-paper">
               <span className="w-6 text-right text-sm font-semibold tabular-nums text-muted">{index + 1}</span>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 basis-52">
                 <Link
                   to="/beheer/diensten/$id"
                   params={{ id: item.id }}

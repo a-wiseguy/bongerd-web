@@ -7,10 +7,12 @@ import { formatNlDate } from '@/lib/format'
 import { WEEKDAY_ORDER, formatClock, spanProblem, weekdayName } from '@/lib/hours'
 import type { Location, OpeningHour } from '@/lib/schema'
 import { deleteException, getAdminHours, saveException, saveWeekHours } from '@/server/admin'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/beheer/openingstijden')({
   loader: () => getAdminHours(),
-  head: () => ({ meta: [{ title: 'Openingstijden · Beheer' }] }),
+  head: (ctx) =>
+    pageHead(ctx, { title: 'Openingstijden · Beheer', description: 'Openingstijden beheren.', noindex: true }),
   component: HoursAdmin,
 })
 

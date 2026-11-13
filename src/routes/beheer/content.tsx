@@ -6,10 +6,12 @@ import { fieldClass } from '@/components/AdminShell'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { limits } from '@/lib/limits'
+import { pageHead } from '@/lib/seo'
 import { getAdminContent, saveContentBlock } from '@/server/admin'
 
 export const Route = createFileRoute('/beheer/content')({
   loader: () => getAdminContent(),
+  head: (ctx) => pageHead(ctx, { title: 'Teksten · Beheer', description: 'Teksten van de site beheren.', noindex: true }),
   component: ContentAdmin,
 })
 
