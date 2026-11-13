@@ -108,3 +108,25 @@ export async function deleteManagedUpload(url: string | null | undefined) {
     }
   }
 }
+
+const MANAGED_FILE = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(-800)?\.(jpg|png|webp)$/i
+
+/** managed files no row points to; grace period covers upload → save */
+export function orphanedUploads(
+  files: ReadonlyArray<{ name: string; mtimeMs: number }>,
+  referencedUrls: Iterable<string>,
+  now = Date.now(),
+  graceMs = 24 * 3_600_000,
+) {
+  const keep = new Set<string>()
+  for (const url of referencedUrls) {
+    const match = MANAGED_FILE.exec(path.basename(url))
+    if (match) keep.add(match[1]!.toLowerCase())
+  }
+  return files
+    .filter((file) => {
+      const match = MANAGED_FILE.exec(file.name)
+      return match && !keep.has(match[1]!.toLowerCase()) && now - file.mtimeMs > graceMs
+    })
+    .map((file) => file.name)
+}

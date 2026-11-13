@@ -18,6 +18,7 @@ import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uplo
 import { getAdminUserImpl } from './auth.server'
 import { purgeExpiredMessages, retentionDays } from './contact.server'
 import { loadHoursBundle } from './public.server'
+import { purgeOrphanedUploads } from './uploadCleanup.server'
 import { notificationsEnabled } from '@/lib/mail.server'
 
 async function requireAdmin() {
@@ -47,6 +48,7 @@ async function uniqueSlug(table: typeof newsPosts | typeof services, base: strin
 
 export async function getAdminDashboardImpl() {
   await requireAdmin()
+  void purgeOrphanedUploads()
   const now = new Date()
   const today = amsterdamNow().date
   const total = sql<number>`count(*)`
