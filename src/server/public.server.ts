@@ -52,20 +52,32 @@ export async function getPublishedServicesImpl() {
   return withSafeBody(rows)
 }
 
-export async function getPublishedNewsImpl() {
-  return db
-    .select({
-      id: newsPosts.id,
-      slug: newsPosts.slug,
-      title: newsPosts.title,
-      excerpt: newsPosts.excerpt,
-      imageUrl: newsPosts.imageUrl,
-      imageAlt: newsPosts.imageAlt,
-      publishedAt: newsPosts.publishedAt,
-    })
-    .from(newsPosts)
-    .where(liveNews())
-    .orderBy(desc(newsPosts.publishedAt))
+export const NEWS_PAGE_SIZE = 12
+const HOME_NEWS_MAX_AGE_DAYS = 365
+
+const newsCard = {
+  id: newsPosts.id,
+  slug: newsPosts.slug,
+  title: newsPosts.title,
+  excerpt: newsPosts.excerpt,
+  imageUrl: newsPosts.imageUrl,
+  imageAlt: newsPosts.imageAlt,
+  publishedAt: newsPosts.publishedAt,
+}
+
+export async function getPublishedNewsImpl(page: number) {
+  const [posts, [totals]] = await Promise.all([
+    db
+      .select(newsCard)
+      .from(newsPosts)
+      .where(liveNews())
+      .orderBy(desc(newsPosts.publishedAt), desc(newsPosts.id))
+      .limit(NEWS_PAGE_SIZE)
+      .offset((page - 1) * NEWS_PAGE_SIZE),
+    db.select({ n: sql<number>`count(*)` }).from(newsPosts).where(liveNews()),
+  ])
+  const total = Number(totals?.n ?? 0)
+  return { posts, page, pageCount: Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE)), total }
 }
 
 export async function getNewsBySlugImpl(slug: string) {
@@ -136,18 +148,16 @@ export async function getHomeDataImpl() {
       .where(eq(services.published, true))
       .orderBy(asc(services.sortOrder))
       .limit(6),
+    // old posts make the homepage look abandoned; the archive keeps them
     db
-      .select({
-        id: newsPosts.id,
-        slug: newsPosts.slug,
-        title: newsPosts.title,
-        excerpt: newsPosts.excerpt,
-        imageUrl: newsPosts.imageUrl,
-        imageAlt: newsPosts.imageAlt,
-        publishedAt: newsPosts.publishedAt,
-      })
+      .select(newsCard)
       .from(newsPosts)
-      .where(liveNews())
+      .where(
+        and(
+          liveNews(),
+          gte(newsPosts.publishedAt, new Date(Date.now() - HOME_NEWS_MAX_AGE_DAYS * 86_400_000)),
+        ),
+      )
       .orderBy(desc(newsPosts.publishedAt))
       .limit(3),
     loadHoursBundle(),

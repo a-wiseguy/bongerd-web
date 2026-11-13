@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Img } from '@/components/Img'
 import { PageHero } from '@/components/PageHero'
 import { blockMap, formatNlDate, heading, text } from '@/lib/format'
@@ -7,21 +8,33 @@ import { pageHead } from '@/lib/seo'
 import { getPageBlocks, getPublishedNews } from '@/server/public'
 
 export const Route = createFileRoute('/nieuws/')({
-  loader: async () => ({
-    blocks: await getPageBlocks({ data: 'nieuws' }),
-    posts: await getPublishedNews(),
-  }),
-  head: (ctx) =>
-    pageHead(ctx, {
-      title: 'Nieuws',
+  validateSearch: (search: Record<string, unknown>): { pagina?: number } => {
+    const page = Number(search.pagina)
+    // explicit undefined: router merges raw params under the validated ones
+    return { pagina: Number.isInteger(page) && page > 1 ? Math.min(page, 10_000) : undefined }
+  },
+  loaderDeps: ({ search }) => ({ page: search.pagina ?? 1 }),
+  loader: async ({ deps }) => {
+    const [blocks, news] = await Promise.all([
+      getPageBlocks({ data: 'nieuws' }),
+      getPublishedNews({ data: { page: deps.page } }),
+    ])
+    if (deps.page > news.pageCount) throw notFound()
+    return { blocks, ...news }
+  },
+  head: (ctx) => {
+    const page = ctx.loaderData?.page ?? 1
+    return pageHead(ctx, {
+      title: page > 1 ? `Nieuws – pagina ${page}` : 'Nieuws',
       description: 'Nieuws en mededelingen van Apotheek De Bongerd.',
-      path: '/nieuws',
-    }),
+      path: page > 1 ? `/nieuws?pagina=${page}` : '/nieuws',
+    })
+  },
   component: NewsList,
 })
 
 function NewsList() {
-  const { blocks, posts } = Route.useLoaderData()
+  const { blocks, posts, page, pageCount } = Route.useLoaderData()
   const copy = blockMap(blocks)
 
   return (
@@ -62,7 +75,37 @@ function NewsList() {
             ))}
           </ul>
         )}
+        {pageCount > 1 ? <Pagination page={page} pageCount={pageCount} /> : null}
       </div>
     </div>
+  )
+}
+
+const pagerLink =
+  'inline-flex min-h-12 items-center gap-2 rounded-full border border-line bg-white px-5 font-semibold text-navy hover:bg-mist'
+
+function Pagination({ page, pageCount }: { page: number; pageCount: number }) {
+  return (
+    <nav aria-label="Paginering nieuws" className="mt-10 flex flex-wrap items-center justify-between gap-3">
+      {page > 1 ? (
+        <Link to="/nieuws" search={page > 2 ? { pagina: page - 1 } : {}} className={pagerLink} rel="prev">
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Nieuwere berichten
+        </Link>
+      ) : (
+        <span />
+      )}
+      <p className="text-sm font-semibold text-muted">
+        Pagina {page} van {pageCount}
+      </p>
+      {page < pageCount ? (
+        <Link to="/nieuws" search={{ pagina: page + 1 }} className={pagerLink} rel="next">
+          Oudere berichten
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      ) : (
+        <span />
+      )}
+    </nav>
   )
 }

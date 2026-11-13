@@ -23,10 +23,12 @@ export const getPublishedServices = createServerFn({ method: 'GET' }).handler(as
   return getPublishedServicesImpl()
 })
 
-export const getPublishedNews = createServerFn({ method: 'GET' }).handler(async () => {
-  const { getPublishedNewsImpl } = await import('./public.server')
-  return getPublishedNewsImpl()
-})
+export const getPublishedNews = createServerFn({ method: 'GET' })
+  .validator(z.object({ page: z.number().int().min(1).max(10_000) }))
+  .handler(async ({ data }) => {
+    const { getPublishedNewsImpl } = await import('./public.server')
+    return getPublishedNewsImpl(data.page)
+  })
 
 export const getNewsBySlug = createServerFn({ method: 'GET' })
   .validator(z.string().max(191))

@@ -19,6 +19,8 @@ export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
+const newsColumns: Record<number, string> = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2' }
+
 function statusSummary(openCount: number, total: number) {
   if (openCount === 0) return 'Alle vestigingen zijn nu gesloten'
   if (openCount === total) return 'Alle vestigingen zijn nu open'
@@ -203,21 +205,21 @@ function HomePage() {
               Al het nieuws <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>
-          <ul className="mt-6 grid gap-4 md:grid-cols-3">
+          <ul className={`mt-6 grid gap-4 ${newsColumns[news.length] ?? 'md:grid-cols-3'}`}>
             {news.map((post, index) => (
               <li key={post.id}>
                 <Link
                   to="/nieuws/$slug"
                   params={{ slug: post.slug }}
-                  className="card-link group flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-card"
+                  className={`card-link group flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-card ${news.length === 1 ? 'md:flex-row' : ''}`}
                 >
                   <Img
                     image={newsImage(post, index)}
                     decorative
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                    className="h-40 w-full object-cover"
+                    sizes={news.length === 1 ? '(min-width: 768px) 40vw, 100vw' : `(min-width: 768px) ${Math.round(100 / news.length)}vw, 100vw`}
+                    className={`h-40 w-full object-cover ${news.length === 1 ? 'md:h-auto md:min-h-56 md:w-2/5' : news.length === 2 ? 'md:h-52' : ''}`}
                   />
-                  <div className="flex flex-1 flex-col p-6">
+                  <div className={`flex flex-1 flex-col p-6 ${news.length === 1 ? 'md:justify-center md:p-8' : ''}`}>
                     <p className="text-sm font-semibold text-teal">
                       <time dateTime={new Date(post.publishedAt).toISOString()}>{formatNlDate(post.publishedAt)}</time>
                     </p>
