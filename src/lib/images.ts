@@ -49,7 +49,14 @@ const serviceMap: Record<string, SiteImage> = {
 const newsFallbacks = [photos.orchard, photos.storefront, photos.interior, photos.consult]
 
 function uploaded(src: string, alt: string): SiteImage {
-  return { src, alt, width: 1600, height: 1067 }
+  const resized = /^\/uploads\/[a-z0-9-]+\.webp$/i.test(src) && !src.endsWith('-800.webp')
+  return {
+    src,
+    alt,
+    srcSet: resized ? `${src.replace(/\.webp$/i, '-800.webp')} 800w, ${src} 1600w` : undefined,
+    width: 1600,
+    height: 1067,
+  }
 }
 
 export function serviceImage(slug: string, override?: { src?: string | null; alt?: string | null }): SiteImage {

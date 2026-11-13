@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ghostBtn } from '@/components/AdminShell'
 import { limits, uploadLimits } from '@/lib/limits'
+import { staffErrorMessage } from '@/lib/formErrors'
 import { uploadImage } from '@/server/admin'
 
 type Props = {
@@ -33,7 +34,7 @@ export function ImageField({
       const result = await uploadImage({ data: fd })
       setUrl(result.url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload mislukt')
+      setError(staffErrorMessage(err, 'Upload mislukt. Probeer het opnieuw.'))
     } finally {
       setBusy(false)
     }
@@ -65,7 +66,9 @@ export function ImageField({
         />
       </label>
       <div className="flex flex-wrap gap-2">
-        <label className={`${ghostBtn} cursor-pointer ${busy ? 'opacity-60' : ''}`}>
+        <label
+          className={`${ghostBtn} inline-flex cursor-pointer items-center focus-within:outline-3 focus-within:outline-offset-3 focus-within:outline-navy ${busy ? 'opacity-60' : ''}`}
+        >
           {busy ? 'Bezig…' : url ? 'Vervangen' : 'Uploaden'}
           <input
             type="file"
@@ -80,11 +83,13 @@ export function ImageField({
         </label>
         {url ? (
           <button type="button" className={ghostBtn} disabled={busy} onClick={onDelete}>
-            Verwijder
+            Foto weghalen
           </button>
         ) : null}
       </div>
-      <p className="text-xs text-muted">JPEG, PNG of WebP · max 2 MB</p>
+      <p className="text-xs text-muted">
+        JPEG, PNG of WebP · max {uploadLimits.maxLabel} · wordt automatisch verkleind, locatiegegevens worden verwijderd
+      </p>
       {error ? (
         <p role="alert" className="text-sm font-semibold text-closed">
           {error}
