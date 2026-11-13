@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { count, eq } from 'drizzle-orm'
+import { count, eq, sql } from 'drizzle-orm'
 import { db } from './db'
 import {
   announcements,
@@ -314,7 +314,10 @@ async function seed() {
     if (existing[0]) {
       await db
         .update(users)
-        .set({ passwordHash: await bcrypt.hash(adminPassword, 12) })
+        .set({
+          passwordHash: await bcrypt.hash(adminPassword, 12),
+          sessionVersion: sql`${users.sessionVersion} + 1`,
+        })
         .where(eq(users.id, existing[0].id))
       console.log(`admin password reset: ${adminEmail}`)
     } else {

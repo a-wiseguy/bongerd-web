@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 
 const COOKIE = 'bongerd_session'
 const WEEK = 60 * 60 * 24 * 7
-const SESSION_VERSION = 1
+const FORMAT = 2
 
 function secret() {
   const value = process.env.SESSION_SECRET
@@ -19,9 +19,18 @@ function sign(payload: string) {
 
 export type SessionUser = { id: string; email: string }
 
-export function setSession(user: SessionUser) {
+// sv = users.session_version at login; bumping it revokes every cookie of that user
+export type SessionClaims = SessionUser & { sv: number }
+
+export function setSession(user: SessionUser, sessionVersion: number) {
   const payload = Buffer.from(
-    JSON.stringify({ ...user, v: SESSION_VERSION, exp: Math.floor(Date.now() / 1000) + WEEK }),
+    JSON.stringify({
+      id: user.id,
+      email: user.email,
+      sv: sessionVersion,
+      v: FORMAT,
+      exp: Math.floor(Date.now() / 1000) + WEEK,
+    }),
   ).toString('base64url')
   const token = `${payload}.${sign(payload)}`
   setCookie(COOKIE, token, {
@@ -37,7 +46,7 @@ export function clearSession() {
   deleteCookie(COOKIE, { path: '/' })
 }
 
-export function readSession(): SessionUser | null {
+export function readSession(): SessionClaims | null {
   const raw = getCookie(COOKIE)
   if (!raw) return null
   const dot = raw.lastIndexOf('.')
@@ -49,14 +58,21 @@ export function readSession(): SessionUser | null {
   const b = Buffer.from(expected)
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null
   try {
-    const user = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as SessionUser & {
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Partial<SessionClaims> & {
       v?: number
       exp?: number
     }
-    if (!user?.id || !user?.email || user.v !== SESSION_VERSION || !user.exp || user.exp <= Math.floor(Date.now() / 1000)) {
+    if (
+      !claims?.id ||
+      !claims.email ||
+      claims.v !== FORMAT ||
+      typeof claims.sv !== 'number' ||
+      !claims.exp ||
+      claims.exp <= Math.floor(Date.now() / 1000)
+    ) {
       return null
     }
-    return { id: user.id, email: user.email }
+    return { id: claims.id, email: claims.email, sv: claims.sv }
   } catch {
     return null
   }

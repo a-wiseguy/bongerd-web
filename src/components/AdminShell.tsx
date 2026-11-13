@@ -10,6 +10,8 @@ const items = [
   { to: '/beheer/nieuws', label: 'Nieuws' },
   { to: '/beheer/diensten', label: 'Diensten' },
   { to: '/beheer/berichten', label: 'Berichten' },
+  { to: '/beheer/team', label: 'Team' },
+  { to: '/beheer/account', label: 'Account' },
 ] as const
 
 export function AdminShell({
@@ -28,7 +30,14 @@ export function AdminShell({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <p className="font-serif text-2xl text-navy">Beheer</p>
           <div className="flex items-center gap-2 text-sm sm:gap-3">
-            <span className="hidden max-w-48 truncate text-muted sm:inline">{email}</span>
+            <Link
+              to="/beheer/account"
+              title="Account en wachtwoord"
+              activeProps={{ 'aria-current': 'page' }}
+              className="hidden min-h-12 max-w-56 items-center truncate rounded-full px-3 text-muted hover:bg-mist hover:text-navy aria-[current=page]:text-navy sm:inline-flex"
+            >
+              {email}
+            </Link>
             <Link to="/" className="inline-flex min-h-12 items-center rounded-full px-3 font-semibold text-navy hover:bg-mist">
               Bekijk site
             </Link>
