@@ -182,3 +182,45 @@ export function openingHoursSpecification(hours: DayHours[]) {
     closes: group.closes,
   }))
 }
+
+function amsterdamWallMs(instant: number) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(instant))
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  return Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'))
+}
+
+/** instant → value for <input type="datetime-local">, always in amsterdam time */
+export function toAmsterdamInput(value: Date | string) {
+  const instant = new Date(value).getTime()
+  return new Date(amsterdamWallMs(instant)).toISOString().slice(0, 16)
+}
+
+/** "yyyy-mm-ddThh:mm" amsterdam wall time → instant; server tz independent */
+export function fromAmsterdamInput(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value)
+  if (!match) throw new Error('Ongeldige datum')
+  const [, y, mo, d, h, mi] = match.map(Number) as [number, number, number, number, number, number]
+  const wall = Date.UTC(y, mo - 1, d, h, mi)
+  let instant = wall - (amsterdamWallMs(wall) - wall)
+  instant = wall - (amsterdamWallMs(instant) - instant)
+  return new Date(instant)
+}
+
+/** mysql timestamp ends 2038; keep scheduling well inside */
+export function publishWindow(now = new Date()) {
+  const min = new Date(Date.UTC(2000, 0, 1))
+  const max = new Date(now.getTime() + 2 * 365 * 86_400_000)
+  return {
+    contains: (value: Date) => value >= min && value.getTime() <= max.getTime() + 86_400_000,
+    minInput: '2000-01-01T00:00',
+    maxInput: `${toAmsterdamInput(max).slice(0, 10)}T23:59`,
+  }
+}

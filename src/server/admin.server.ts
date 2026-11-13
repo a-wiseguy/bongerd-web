@@ -1,5 +1,5 @@
 import { redirect } from '@tanstack/react-router'
-import { and, asc, desc, eq, like } from 'drizzle-orm'
+import { and, asc, desc, eq, like, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import {
   announcements,
@@ -12,7 +12,7 @@ import {
   siteContent,
 } from '@/lib/schema'
 import { nextFreeSlug, slugify } from '@/lib/format'
-import { amsterdamNow } from '@/lib/hours'
+import { amsterdamNow, fromAmsterdamInput, publishWindow } from '@/lib/hours'
 import { toSafeHtml } from '@/lib/sanitize.server'
 import { deleteManagedUpload, isManagedUploadUrl, storeUpload } from '@/lib/uploads'
 import { getAdminUserImpl } from './auth.server'
@@ -186,7 +186,24 @@ export async function deleteAnnouncementImpl(id: string) {
 
 export async function getAdminNewsImpl() {
   await requireAdmin()
-  return db.select().from(newsPosts).orderBy(desc(newsPosts.publishedAt))
+  return db
+    .select({
+      id: newsPosts.id,
+      slug: newsPosts.slug,
+      title: newsPosts.title,
+      imageUrl: newsPosts.imageUrl,
+      published: newsPosts.published,
+      publishedAt: newsPosts.publishedAt,
+      updatedAt: newsPosts.updatedAt,
+    })
+    .from(newsPosts)
+    .orderBy(desc(newsPosts.publishedAt))
+}
+
+export async function getAdminNewsPostImpl(id: string) {
+  await requireAdmin()
+  const [post] = await db.select().from(newsPosts).where(eq(newsPosts.id, id)).limit(1)
+  return post ?? null
 }
 
 export async function saveNewsImpl(data: {
@@ -197,41 +214,38 @@ export async function saveNewsImpl(data: {
   imageUrl?: string | null
   imageAlt?: string | null
   published: boolean
-  slug?: string
+  publishedAt?: string
 }) {
   await requireAdmin()
-  const slug = await uniqueSlug(newsPosts, slugify(data.slug || data.title, 'bericht'), data.id)
   const body = toSafeHtml(data.body)
   const nextUrl = cleanImage(data.imageUrl)
+  const publishedAt = data.publishedAt ? fromAmsterdamInput(data.publishedAt) : undefined
+  if (publishedAt && !publishWindow().contains(publishedAt)) {
+    throw new Error('Kies een publicatiedatum tussen 2000 en twee jaar vooruit.')
+  }
+  const fields = {
+    title: data.title,
+    excerpt: data.excerpt,
+    body,
+    imageUrl: nextUrl,
+    imageAlt: cleanAlt(data.imageAlt),
+    published: data.published,
+    ...(publishedAt ? { publishedAt } : {}),
+  }
   if (data.id) {
     const [existing] = await db.select().from(newsPosts).where(eq(newsPosts.id, data.id)).limit(1)
-    if (existing?.imageUrl && existing.imageUrl !== nextUrl) {
+    if (!existing) throw new Error('Dit bericht bestaat niet meer.')
+    if (existing.imageUrl && existing.imageUrl !== nextUrl) {
       await deleteManagedUpload(existing.imageUrl)
     }
-    await db
-      .update(newsPosts)
-      .set({
-        title: data.title,
-        excerpt: data.excerpt,
-        body,
-        imageUrl: nextUrl,
-        imageAlt: cleanAlt(data.imageAlt),
-        published: data.published,
-        slug,
-      })
-      .where(eq(newsPosts.id, data.id))
-  } else {
-    await db.insert(newsPosts).values({
-      title: data.title,
-      excerpt: data.excerpt,
-      body,
-      imageUrl: nextUrl,
-      imageAlt: cleanAlt(data.imageAlt),
-      published: data.published,
-      slug,
-    })
+    // slug stays put after creation so shared links keep working
+    await db.update(newsPosts).set(fields).where(eq(newsPosts.id, data.id))
+    return { ok: true as const, id: existing.id, slug: existing.slug }
   }
-  return { ok: true }
+  const id = crypto.randomUUID()
+  const slug = await uniqueSlug(newsPosts, slugify(data.title, 'bericht'))
+  await db.insert(newsPosts).values({ id, slug, ...fields })
+  return { ok: true as const, id, slug }
 }
 
 export async function deleteNewsImpl(id: string) {
@@ -244,7 +258,43 @@ export async function deleteNewsImpl(id: string) {
 
 export async function getAdminServicesImpl() {
   await requireAdmin()
-  return db.select().from(services).orderBy(asc(services.sortOrder))
+  return db
+    .select({
+      id: services.id,
+      slug: services.slug,
+      title: services.title,
+      summary: services.summary,
+      published: services.published,
+      sortOrder: services.sortOrder,
+    })
+    .from(services)
+    .orderBy(asc(services.sortOrder), asc(services.title))
+}
+
+export async function getAdminServiceImpl(id: string) {
+  await requireAdmin()
+  const [service] = await db.select().from(services).where(eq(services.id, id)).limit(1)
+  return service ?? null
+}
+
+export async function moveServiceImpl(data: { id: string; direction: 'up' | 'down' }) {
+  await requireAdmin()
+  const list = await db
+    .select({ id: services.id })
+    .from(services)
+    .orderBy(asc(services.sortOrder), asc(services.title))
+  const index = list.findIndex((item) => item.id === data.id)
+  const target = index + (data.direction === 'up' ? -1 : 1)
+  if (index === -1 || target < 0 || target >= list.length) return { ok: true as const }
+  const ordered = [...list]
+  ;[ordered[index], ordered[target]] = [ordered[target]!, ordered[index]!]
+  // renumber all so legacy duplicate sort values can't make a swap a no-op
+  await db.transaction(async (tx) => {
+    for (const [i, item] of ordered.entries()) {
+      await tx.update(services).set({ sortOrder: i + 1 }).where(eq(services.id, item.id))
+    }
+  })
+  return { ok: true as const }
 }
 
 export async function saveServiceImpl(data: {
@@ -256,43 +306,34 @@ export async function saveServiceImpl(data: {
   imageAlt?: string | null
   href?: string | null
   published: boolean
-  sortOrder: number
 }) {
   await requireAdmin()
-  const body = toSafeHtml(data.body)
   const nextUrl = cleanImage(data.imageUrl)
+  const fields = {
+    title: data.title,
+    summary: data.summary,
+    body: toSafeHtml(data.body),
+    imageUrl: nextUrl,
+    imageAlt: cleanAlt(data.imageAlt),
+    href: data.href || null,
+    published: data.published,
+  }
   if (data.id) {
     const [existing] = await db.select().from(services).where(eq(services.id, data.id)).limit(1)
-    if (existing?.imageUrl && existing.imageUrl !== nextUrl) {
+    if (!existing) throw new Error('Deze dienst bestaat niet meer.')
+    if (existing.imageUrl && existing.imageUrl !== nextUrl) {
       await deleteManagedUpload(existing.imageUrl)
     }
-    await db
-      .update(services)
-      .set({
-        title: data.title,
-        summary: data.summary,
-        body,
-        imageUrl: nextUrl,
-        imageAlt: cleanAlt(data.imageAlt),
-        href: data.href || null,
-        published: data.published,
-        sortOrder: data.sortOrder,
-      })
-      .where(eq(services.id, data.id))
-  } else {
-    await db.insert(services).values({
-      title: data.title,
-      summary: data.summary,
-      body,
-      imageUrl: nextUrl,
-      imageAlt: cleanAlt(data.imageAlt),
-      href: data.href || null,
-      published: data.published,
-      sortOrder: data.sortOrder,
-      slug: await uniqueSlug(services, slugify(data.title, 'dienst')),
-    })
-     }
-  return { ok: true }
+    await db.update(services).set(fields).where(eq(services.id, data.id))
+    return { ok: true as const, id: existing.id, slug: existing.slug }
+  }
+  const [{ value: last } = { value: 0 }] = await db
+    .select({ value: sql<number>`coalesce(max(${services.sortOrder}), 0)` })
+    .from(services)
+  const id = crypto.randomUUID()
+  const slug = await uniqueSlug(services, slugify(data.title, 'dienst'))
+  await db.insert(services).values({ id, slug, sortOrder: Number(last) + 1, ...fields })
+  return { ok: true as const, id, slug }
 }
 
 export async function deleteServiceImpl(id: string) {

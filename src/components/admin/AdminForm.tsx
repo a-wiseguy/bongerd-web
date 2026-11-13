@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, type FormEvent, type ReactNode } from 'react'
+import { useHydrated } from '@tanstack/react-router'
 import { btnClass, ghostBtn } from '@/components/AdminShell'
 import { staffErrorMessage } from '@/lib/formErrors'
 
-const BusyContext = createContext(false)
+type FormState = { busy: boolean; status: 'idle' | 'busy' | 'ok' | 'error'; message: string; atButton: boolean }
+const FormContext = createContext<FormState>({ busy: false, status: 'idle', message: '', atButton: false })
 
 export function AdminForm({
   id,
@@ -10,6 +12,7 @@ export function AdminForm({
   success = 'Opgeslagen.',
   failure = 'Opslaan mislukt. Controleer de velden en probeer het opnieuw.',
   statusClassName,
+  statusAtButton = false,
   onSave,
   children,
 }: {
@@ -18,6 +21,8 @@ export function AdminForm({
   success?: string
   failure?: string
   statusClassName?: string
+  /** long forms: show feedback under the save button, not at the bottom */
+  statusAtButton?: boolean
   onSave: (data: FormData, form: HTMLFormElement) => Promise<void>
   children: ReactNode
 }) {
@@ -42,14 +47,15 @@ export function AdminForm({
   return (
     <form
       id={id}
+      method="post"
       className={`grid gap-3 ${className ?? ''}`}
       aria-busy={status === 'busy' || undefined}
       onSubmit={onSubmit}
     >
-      <BusyContext.Provider value={status === 'busy'}>
+      <FormContext.Provider value={{ busy: status === 'busy', status, message, atButton: statusAtButton }}>
         <div className={`grid gap-3 ${status === 'busy' ? 'opacity-70' : ''}`}>{children}</div>
-        <FormStatus status={status} message={message} className={statusClassName} />
-      </BusyContext.Provider>
+        {statusAtButton ? null : <FormStatus status={status} message={message} className={statusClassName} />}
+      </FormContext.Provider>
     </form>
   )
 }
@@ -61,11 +67,19 @@ export function SaveButton({
   children: ReactNode
   className?: string
 }) {
-  const busy = useContext(BusyContext)
-  return (
-    <button type="submit" className={className} disabled={busy}>
+  const { busy, status, message, atButton } = useContext(FormContext)
+  const hydrated = useHydrated()
+  const button = (
+    <button type="submit" className={className} disabled={busy || !hydrated}>
       {busy ? 'Bezig…' : children}
     </button>
+  )
+  if (!atButton) return button
+  return (
+    <>
+      {button}
+      <FormStatus status={status} message={message} />
+    </>
   )
 }
 
@@ -97,7 +111,7 @@ export function DeleteButton({
   onConfirm: () => Promise<void>
   confirmText?: string
 }) {
-  const formBusy = useContext(BusyContext)
+  const formBusy = useContext(FormContext).busy
   const [armed, setArmed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

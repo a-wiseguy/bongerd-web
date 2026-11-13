@@ -79,3 +79,7 @@ export function blockImage(
   if (block?.imageUrl) return uploaded(block.imageUrl, block.imageAlt || fallback.alt)
   return fallback
 }
+
+export function thumbnailUrl(src: string) {
+  return /^\/uploads\/[a-z0-9-]+\.webp$/i.test(src) && !src.endsWith('-800.webp') ? src.replace(/\.webp$/i, '-800.webp') : src
+}

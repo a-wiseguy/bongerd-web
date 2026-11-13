@@ -154,12 +154,22 @@ export const saveNews = createServerFn({ method: 'POST' })
       imageUrl: imageUrlSchema,
       imageAlt: imageAltSchema,
       published: z.boolean(),
-      slug: z.string().trim().max(191).optional(),
+      publishedAt: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Kies een geldige publicatiedatum.')
+        .optional(),
     }),
   )
   .handler(async ({ data }) => {
     const { saveNewsImpl } = await import('./admin.server')
     return saveNewsImpl(data)
+  })
+
+export const getAdminNewsPost = createServerFn({ method: 'GET' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { getAdminNewsPostImpl } = await import('./admin.server')
+    return getAdminNewsPostImpl(data.id)
   })
 
 export const deleteNews = createServerFn({ method: 'POST' })
@@ -191,12 +201,25 @@ export const saveService = createServerFn({ method: 'POST' })
         .optional()
         .nullable(),
       published: z.boolean(),
-      sortOrder: z.number().int(),
     }),
   )
   .handler(async ({ data }) => {
     const { saveServiceImpl } = await import('./admin.server')
     return saveServiceImpl(data)
+  })
+
+export const getAdminService = createServerFn({ method: 'GET' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { getAdminServiceImpl } = await import('./admin.server')
+    return getAdminServiceImpl(data.id)
+  })
+
+export const moveService = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: z.uuid(), direction: z.enum(['up', 'down']) }))
+  .handler(async ({ data }) => {
+    const { moveServiceImpl } = await import('./admin.server')
+    return moveServiceImpl(data)
   })
 
 export const deleteService = createServerFn({ method: 'POST' })

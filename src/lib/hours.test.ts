@@ -4,9 +4,12 @@ import {
   addDays,
   amsterdamNow,
   type DayHours,
+  fromAmsterdamInput,
   locationStatus,
   openingHoursSpecification,
+  publishWindow,
   spanProblem,
+  toAmsterdamInput,
   upcomingExceptions,
 } from './hours'
 
@@ -114,4 +117,25 @@ test('schema.org spec merges identical weekdays', () => {
     },
     { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Wednesday'], opens: '08:00', closes: '12:00' },
   ])
+})
+
+test('datetime-local values are amsterdam wall time in winter and summer', () => {
+  assert.equal(fromAmsterdamInput('2026-11-13T09:30').toISOString(), '2026-11-13T08:30:00.000Z')
+  assert.equal(fromAmsterdamInput('2026-07-01T09:30').toISOString(), '2026-07-01T07:30:00.000Z')
+  assert.equal(toAmsterdamInput('2026-11-13T08:30:00.000Z'), '2026-11-13T09:30')
+  assert.equal(toAmsterdamInput(new Date('2026-07-01T07:30:00Z')), '2026-07-01T09:30')
+  // just after the spring-forward and fall-back switches
+  assert.equal(fromAmsterdamInput('2026-03-29T03:30').toISOString(), '2026-03-29T01:30:00.000Z')
+  assert.equal(toAmsterdamInput(fromAmsterdamInput('2026-10-25T04:00')), '2026-10-25T04:00')
+  assert.throws(() => fromAmsterdamInput('13-11-2026 09:30'))
+})
+
+test('publish window stays inside mysql timestamp range', () => {
+  const now = new Date('2026-11-13T12:00:00Z')
+  const range = publishWindow(now)
+  assert.equal(range.maxInput, '2028-11-12T23:59')
+  assert.ok(range.contains(fromAmsterdamInput(range.maxInput)))
+  assert.ok(!range.contains(fromAmsterdamInput('2099-01-01T09:00')))
+  assert.ok(!range.contains(fromAmsterdamInput('1999-12-31T23:00')))
+  assert.ok(range.contains(now))
 })
