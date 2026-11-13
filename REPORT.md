@@ -104,13 +104,15 @@ I re-read my diff and looked at fresh screenshots of the production build, speci
 | `f947003` | `e2e/`: the browser flows as `npm run test:e2e`, with generated fixtures (no binary files in git), an SMTP sink, configuration via env and a refusal to run against non-local URLs. A new CI job runs them against a production build with MySQL. |
 | `f66f2dd` | Security upgrade: `@tanstack/react-start` 1.169, `@tanstack/react-router` 1.170, `sanitize-html` 2.18 |
 | `c76eff3` | Fix for an unsaved-changes double prompt that the e2e suite caught after the upgrade (below) |
+| `1469fb4` | The generated route tree is now committed, so typecheck works on a fresh checkout, and CI fails if a build changes it |
 
 ## Bugs found in round 2
 
 1. **Critical advisory on `master`.** While checking dependencies for this round I ran `npm audit`, which reported a critical issue in `@tanstack/react-start` (reflected XSS, GHSA-qx66-fv34-fjm8) and high-severity issues in `seroval`, its serialiser. The repo's own "Security audit" workflow had already caught it: it has failed on both pushes to `master` since 3 November, but nothing blocks a merge or deploy on it. The upgrade is a minor version within the same major.
 2. **`?pagina=abc` gave a 500.** The router merges the raw search params under the validated ones, so a value the validator dropped came back as the string `"abc"`. The validator now returns an explicit `undefined`, and invalid values redirect to `/nieuws`.
 3. **Double "unsaved changes" prompt.** This appeared only after the upgrade and only when the editor had been loaded with a full page load. When you confirm "leave", the router changes the URL first but keeps the editor mounted until the next page's data has loaded. A reload in that window asked again, for changes you had just chosen to throw away. I found this by reading the router's live blockers in the browser (`window.__TSR_ROUTER__.history`). Confirming now discards the changes immediately.
-4. **Silent database outage.** I ran a second production instance against an unreachable database. Before the change, the error page was rendered and the log stayed empty. Now each failing server function logs one line with the function name and `ECONNREFUSED`.
+4. **Typecheck failed on every fresh checkout.** `src/routeTree.gen.ts` was gitignored, so the first CI run of this PR got 80 type errors before anything had generated it. Locally the dev server always had it regenerated, which hid the problem. TanStack Router recommends committing this file, so it is now committed, and CI checks that a build leaves it unchanged.
+5. **Silent database outage.** I ran a second production instance against an unreachable database. Before the change, the error page was rendered and the log stayed empty. Now each failing server function logs one line with the function name and `ECONNREFUSED`.
 
 ## Second opinion — round 2
 
