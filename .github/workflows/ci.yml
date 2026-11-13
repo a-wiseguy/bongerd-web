@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Route tree is up to date
+        run: git diff --exit-code src/routeTree.gen.ts
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root
+          MYSQL_DATABASE: bongerd
+          MYSQL_USER: bongerd
+          MYSQL_PASSWORD: ci-pass
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-root"
+          --health-interval=3s --health-timeout=3s --health-retries=30
+    env:
+      DATABASE_URL: mysql://bongerd:ci-pass@127.0.0.1:3306/bongerd
+      ADMIN_EMAIL: ci@example.com
+      ADMIN_PASSWORD: ci-admin-password-123
+      SESSION_SECRET: ci-session-secret-with-at-least-32-chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # twice: second run must be a no-op (container restarts)
+      - run: npm run db:migrate && npm run db:seed && npm run db:migrate && npm run db:seed
+      - name: schema matches migrations
+        run: npx drizzle-kit generate --name ci-check | tee /tmp/gen.log && grep -q "No schema changes" /tmp/gen.log
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root
+          MYSQL_DATABASE: bongerd
+          MYSQL_USER: bongerd
+          MYSQL_PASSWORD: ci-pass
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-root"
+          --health-interval=3s --health-timeout=3s --health-retries=30
+    env:
+      DATABASE_URL: mysql://bongerd:ci-pass@127.0.0.1:3306/bongerd
+      ADMIN_EMAIL: ci@example.com
+      ADMIN_PASSWORD: ci-admin-password-123
+      SESSION_SECRET: ci-session-secret-with-at-least-32-chars
+      COOKIE_SECURE: 'false'
+      SITE_URL: http://localhost:3000
+      UPLOAD_DIR: ./data/uploads
+      SMTP_URL: smtp://127.0.0.1:2525
+      NOTIFY_EMAIL: apotheek@example.com
+      E2E_MAIL_LOG: e2e/.artifacts/mails.jsonl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run db:migrate && npm run db:seed
+      - run: npm run build
+      - name: start mail sink and server
+        run: |
+          mkdir -p e2e/.artifacts
+          nohup npm run e2e:smtp > e2e/.artifacts/smtp.log 2>&1 &
+          nohup node .output/server/index.mjs > e2e/.artifacts/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fs http://localhost:3000/healthz && break; sleep 1; done
+          curl -fs http://localhost:3000/healthz
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e/.artifacts/
+          retention-days: 7

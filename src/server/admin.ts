@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { htmlLimits, limits } from '@/lib/limits'
-import { plainTextLength } from '@/lib/sanitize'
+import { spanProblem } from '@/lib/hours'
+import { plainTextLength } from '@/lib/html'
 import { isValidServiceHref } from '@/lib/serviceHref'
 
 const titleSchema = z.string().trim().min(1).max(limits.title)
@@ -54,31 +55,51 @@ export const getAdminHours = createServerFn({ method: 'GET' }).handler(async () 
   return getAdminHoursImpl()
 })
 
-export const saveOpeningHour = createServerFn({ method: 'POST' })
+const clock = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/, 'Gebruik een tijd als 08:00.')
+  .nullable()
+
+const timeSpan = {
+  opens: clock,
+  closes: clock,
+  isClosed: z.boolean(),
+}
+
+function checkSpan(
+  value: { opens: string | null; closes: string | null; isClosed: boolean },
+  ctx: z.RefinementCtx,
+  prefix: Array<string | number> = [],
+) {
+  const problem = spanProblem(value)
+  if (problem) ctx.addIssue({ code: 'custom', path: [...prefix, problem.field], message: problem.message })
+}
+
+export const saveWeekHours = createServerFn({ method: 'POST' })
   .validator(
-    z.object({
-      id: z.uuid(),
-      opens: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
-      closes: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
-      isClosed: z.boolean(),
-    }),
+    z
+      .object({
+        locationId: z.uuid(),
+        days: z.array(z.object({ id: z.uuid(), ...timeSpan })).min(1).max(7),
+      })
+      .superRefine((value, ctx) => value.days.forEach((day, index) => checkSpan(day, ctx, ['days', index]))),
   )
   .handler(async ({ data }) => {
-    const { saveOpeningHourImpl } = await import('./admin.server')
-    return saveOpeningHourImpl(data)
+    const { saveWeekHoursImpl } = await import('./admin.server')
+    return saveWeekHoursImpl(data)
   })
 
 export const saveException = createServerFn({ method: 'POST' })
   .validator(
-    z.object({
-      id: z.uuid().optional(),
-      locationId: z.uuid().nullable(),
-      date: z.iso.date(),
-      opens: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
-      closes: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/).nullable(),
-      isClosed: z.boolean(),
-      label: z.string().trim().min(1).max(255),
-    }),
+    z
+      .object({
+        id: z.uuid().optional(),
+        locationId: z.uuid().nullable(),
+        date: z.iso.date('Kies een datum.'),
+        ...timeSpan,
+        label: z.string().trim().min(1, 'Vul een toelichting in.').max(255),
+      })
+      .superRefine((value, ctx) => checkSpan(value, ctx)),
   )
   .handler(async ({ data }) => {
     const { saveExceptionImpl } = await import('./admin.server')
@@ -104,6 +125,10 @@ export const saveAnnouncement = createServerFn({ method: 'POST' })
       title: titleSchema,
       body: richText(limits.announcementBody, htmlLimits.announcementBody),
       published: z.boolean(),
+      visibleUntil: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Kies een geldige datum.')
+        .nullable(),
     }),
   )
   .handler(async ({ data }) => {
@@ -133,12 +158,22 @@ export const saveNews = createServerFn({ method: 'POST' })
       imageUrl: imageUrlSchema,
       imageAlt: imageAltSchema,
       published: z.boolean(),
-      slug: z.string().trim().max(191).optional(),
+      publishedAt: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Kies een geldige publicatiedatum.')
+        .optional(),
     }),
   )
   .handler(async ({ data }) => {
     const { saveNewsImpl } = await import('./admin.server')
     return saveNewsImpl(data)
+  })
+
+export const getAdminNewsPost = createServerFn({ method: 'GET' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { getAdminNewsPostImpl } = await import('./admin.server')
+    return getAdminNewsPostImpl(data.id)
   })
 
 export const deleteNews = createServerFn({ method: 'POST' })
@@ -170,12 +205,25 @@ export const saveService = createServerFn({ method: 'POST' })
         .optional()
         .nullable(),
       published: z.boolean(),
-      sortOrder: z.number().int(),
     }),
   )
   .handler(async ({ data }) => {
     const { saveServiceImpl } = await import('./admin.server')
     return saveServiceImpl(data)
+  })
+
+export const getAdminService = createServerFn({ method: 'GET' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { getAdminServiceImpl } = await import('./admin.server')
+    return getAdminServiceImpl(data.id)
+  })
+
+export const moveService = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: z.uuid(), direction: z.enum(['up', 'down']) }))
+  .handler(async ({ data }) => {
+    const { moveServiceImpl } = await import('./admin.server')
+    return moveServiceImpl(data)
   })
 
 export const deleteService = createServerFn({ method: 'POST' })
@@ -195,6 +243,13 @@ export const setMessageHandled = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { setMessageHandledImpl } = await import('./admin.server')
     return setMessageHandledImpl(data)
+  })
+
+export const deleteMessage = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: z.uuid() }))
+  .handler(async ({ data }) => {
+    const { deleteMessageImpl } = await import('./admin.server')
+    return deleteMessageImpl(data.id)
   })
 
 export const uploadImage = createServerFn({ method: 'POST' })

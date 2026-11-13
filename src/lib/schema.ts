@@ -19,6 +19,7 @@ export const users = mysqlTable('users', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  sessionVersion: int('session_version').notNull().default(1),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
@@ -85,6 +86,7 @@ export const announcements = mysqlTable('announcements', {
   title: varchar('title', { length: 255 }).notNull(),
   body: text('body').notNull(),
   published: boolean('published').notNull().default(true),
+  visibleUntil: date('visible_until', { mode: 'string' }),
   sortOrder: int('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
@@ -99,6 +101,7 @@ export const newsPosts = mysqlTable('news_posts', {
   imageAlt: varchar('image_alt', { length: 255 }),
   published: boolean('published').notNull().default(true),
   publishedAt: timestamp('published_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow().onUpdateNow(),
 })
 
 export const services = mysqlTable('services', {
@@ -122,6 +125,7 @@ export const contactSubmissions = mysqlTable('contact_submissions', {
   subject: varchar('subject', { length: 255 }).notNull(),
   message: text('message').notNull(),
   handled: boolean('handled').notNull().default(false),
+  handledAt: timestamp('handled_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 

@@ -33,6 +33,10 @@ services:
       RESET_ADMIN_PASSWORD: ${RESET_ADMIN_PASSWORD:-false}
       SITE_URL: ${SITE_URL:-http://localhost:3000}
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/data/uploads}
+      SMTP_URL: ${SMTP_URL:-}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MESSAGE_RETENTION_DAYS: ${MESSAGE_RETENTION_DAYS:-90}
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"

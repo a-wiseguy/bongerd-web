@@ -10,6 +10,23 @@ const mimeByExt: Record<string, string> = {
   '.webp': 'image/webp',
 }
 
+async function isFile(filePath: string) {
+  try {
+    return (await stat(filePath)).isFile()
+  } catch {
+    return false
+  }
+}
+
+// uploads from before resizing have no -800 variant; serve the original instead of a broken srcset
+async function resolveUpload(filename: string) {
+  const filePath = path.join(uploadsRoot(), path.basename(filename))
+  if (await isFile(filePath)) return filePath
+  const original = filePath.replace(/-800\.webp$/i, '.webp')
+  if (original !== filePath && (await isFile(original))) return original
+  return null
+}
+
 export const Route = createFileRoute('/uploads/$filename')({
   server: {
     handlers: {
@@ -18,10 +35,9 @@ export const Route = createFileRoute('/uploads/$filename')({
         if (!/^[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(filename)) {
           return new Response('Not found', { status: 404 })
         }
-        const filePath = path.join(uploadsRoot(), path.basename(filename))
         try {
-          const info = await stat(filePath)
-          if (!info.isFile()) return new Response('Not found', { status: 404 })
+          const filePath = await resolveUpload(filename)
+          if (!filePath) return new Response('Not found', { status: 404 })
           const buf = await readFile(filePath)
           const ext = path.extname(filename).toLowerCase()
           return new Response(buf, {

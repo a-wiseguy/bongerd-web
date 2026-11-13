@@ -19,6 +19,7 @@ export const htmlLimits = {
 } as const
 
 export const uploadLimits = {
-  maxBytes: 2 * 1024 * 1024,
+  maxBytes: 10 * 1024 * 1024,
+  maxLabel: '10 MB',
   allowedMime: ['image/jpeg', 'image/png', 'image/webp'] as const,
 }

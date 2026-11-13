@@ -3,6 +3,7 @@ import {
   createMiddleware,
   createStart,
 } from '@tanstack/react-start'
+import { describeError, isExpectedError } from '@/lib/serverLog'
 
 function securityHeaders() {
   const secureCookies = process.env.COOKIE_SECURE === 'true'
@@ -21,9 +22,11 @@ function securityHeaders() {
         "frame-ancestors 'none'",
         "object-src 'none'",
         "img-src 'self' data: blob:",
-        "font-src 'self' https://fonts.gstatic.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
         "script-src 'self' 'unsafe-inline'",
+        "connect-src 'self'",
+        "manifest-src 'self'",
         'upgrade-insecure-requests',
       ]
         .filter((directive) => enableHsts || directive !== 'upgrade-insecure-requests')
@@ -43,9 +46,21 @@ function securityHeaders() {
   })
 }
 
+const logServerErrors = createMiddleware({ type: 'function' }).server(async ({ next, serverFnMeta }) => {
+  try {
+    return await next()
+  } catch (error) {
+    if (!isExpectedError(error)) {
+      console.error(`[server] ${serverFnMeta?.name ?? 'serverFn'} failed: ${describeError(error)}`)
+    }
+    throw error
+  }
+})
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [
     createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === 'serverFn' }),
     securityHeaders(),
   ],
+  functionMiddleware: [logServerErrors],
 }))

@@ -9,13 +9,13 @@ const pages = [
   { to: '/contact', label: 'Contact' },
 ] as const
 
-const handy = [
+const handy: ReadonlyArray<{ to: '/diensten' | '/openingstijden' | '/contact' | '/privacy'; hash?: string; label: string }> = [
   { to: '/diensten', hash: 'herhaalrecepten', label: 'Herhaalrecept' },
   { to: '/openingstijden', label: 'Nu open of gesloten?' },
   { to: '/openingstijden', hash: 'dienstapotheek', label: 'Spoed buiten openingstijden' },
   { to: '/contact', label: 'Route en adressen' },
   { to: '/privacy', label: 'Privacy' },
-] as const
+]
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
@@ -76,7 +76,7 @@ export function SiteFooter() {
               <li key={`${item.to}-${item.hash ?? item.label}`}>
                 <Link
                   to={item.to}
-                  hash={'hash' in item ? item.hash : undefined}
+                  hash={item.hash}
                   className="inline-flex min-h-10 items-center text-[1.05rem] font-semibold text-white/95 underline-offset-4 hover:underline"
                 >
                   {item.label}

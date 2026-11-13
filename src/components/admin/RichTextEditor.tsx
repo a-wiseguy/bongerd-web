@@ -1,9 +1,9 @@
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, useEditorState, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
 import CharacterCount from '@tiptap/extension-character-count'
 import { useEffect, useId, useState } from 'react'
-import { plainToHtml } from '@/lib/sanitize'
+import { plainToParagraphs } from '@/lib/html'
+import { signalChange } from './AdminForm'
 
 type Props = {
   name: string
@@ -39,9 +39,9 @@ function ToolbarButton({
   )
 }
 
-export function RichTextEditor({ name, defaultValue = '', maxLength, compact }: Props) {
+export function RichTextEditor({ name, defaultValue = '', maxLength, compact, label = 'Tekst' }: Props) {
   const reactId = useId()
-  const [html, setHtml] = useState(() => plainToHtml(defaultValue))
+  const [html, setHtml] = useState(() => plainToParagraphs(defaultValue))
   const [count, setCount] = useState(0)
 
   const editor = useEditor({
@@ -53,36 +53,36 @@ export function RichTextEditor({ name, defaultValue = '', maxLength, compact }: 
         codeBlock: false,
         blockquote: false,
         horizontalRule: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        defaultProtocol: 'https',
-        HTMLAttributes: {
-          rel: 'noopener noreferrer',
-          target: '_blank',
-        },
-        isAllowedUri: (url, ctx) => {
-          try {
-            if (url.startsWith('/') && !url.startsWith('//')) return true
-            const parsed = url.includes(':') ? new URL(url) : new URL(`${ctx.defaultProtocol}://${url}`)
-            return ['http:', 'https:', 'mailto:'].includes(parsed.protocol)
-          } catch {
-            return false
-          }
+        strike: false,
+        underline: false,
+        link: {
+          openOnClick: false,
+          autolink: true,
+          defaultProtocol: 'https',
+          HTMLAttributes: { rel: null, target: null },
+          isAllowedUri: (url, ctx) => {
+            try {
+              if (url.startsWith('/') && !url.startsWith('//')) return true
+              const parsed = url.includes(':') ? new URL(url) : new URL(`${ctx.defaultProtocol}://${url}`)
+              return ['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol)
+            } catch {
+              return false
+            }
+          },
         },
       }),
       CharacterCount.configure({ limit: maxLength }),
     ],
-    content: plainToHtml(defaultValue),
+    content: plainToParagraphs(defaultValue),
     editorProps: {
       attributes: {
         class: `${compact ? 'min-h-28' : 'min-h-40'} prose-site max-w-none px-3 py-2 outline-none`,
         'aria-labelledby': `${reactId}-label`,
       },
     },
-    onUpdate: ({ editor: ed }) => {
+    onUpdate: ({ editor: ed, transaction }) => {
       setHtml(ed.getHTML())
+      if (transaction.docChanged) signalChange(ed.view.dom)
       setCount(ed.storage.characterCount.characters())
     },
     onCreate: ({ editor: ed }) => {
@@ -94,6 +94,19 @@ export function RichTextEditor({ name, defaultValue = '', maxLength, compact }: 
     if (!editor) return
     setCount(editor.storage.characterCount.characters())
   }, [editor])
+
+  const active = useEditorState({
+    editor,
+    selector: ({ editor: ed }) => ({
+      bold: ed?.isActive('bold') ?? false,
+      italic: ed?.isActive('italic') ?? false,
+      bulletList: ed?.isActive('bulletList') ?? false,
+      orderedList: ed?.isActive('orderedList') ?? false,
+      link: ed?.isActive('link') ?? false,
+      h2: ed?.isActive('heading', { level: 2 }) ?? false,
+      h3: ed?.isActive('heading', { level: 3 }) ?? false,
+    }),
+  })
 
   const setLink = () => {
     if (!editor) return
@@ -113,52 +126,52 @@ export function RichTextEditor({ name, defaultValue = '', maxLength, compact }: 
   return (
     <div className="grid gap-1">
       <span id={`${reactId}-label`} className="sr-only">
-        Tekst
+        {label}
       </span>
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
         <div className="flex flex-wrap gap-1 border-b border-line bg-mist/60 p-2">
           <ToolbarButton
-            active={editor?.isActive('bold')}
+            active={active?.bold}
             disabled={!editor}
             onClick={() => editor?.chain().focus().toggleBold().run()}
           >
             Vet
           </ToolbarButton>
           <ToolbarButton
-            active={editor?.isActive('italic')}
+            active={active?.italic}
             disabled={!editor}
             onClick={() => editor?.chain().focus().toggleItalic().run()}
           >
             Cursief
           </ToolbarButton>
           <ToolbarButton
-            active={editor?.isActive('bulletList')}
+            active={active?.bulletList}
             disabled={!editor}
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
           >
             Lijst
           </ToolbarButton>
           <ToolbarButton
-            active={editor?.isActive('orderedList')}
+            active={active?.orderedList}
             disabled={!editor}
             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
           >
             Genummerd
           </ToolbarButton>
-          <ToolbarButton active={editor?.isActive('link')} disabled={!editor} onClick={setLink}>
+          <ToolbarButton active={active?.link} disabled={!editor} onClick={setLink}>
             Link
           </ToolbarButton>
           {!compact ? (
             <>
               <ToolbarButton
-                active={editor?.isActive('heading', { level: 2 })}
+                active={active?.h2}
                 disabled={!editor}
                 onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
               >
                 Kop
               </ToolbarButton>
               <ToolbarButton
-                active={editor?.isActive('heading', { level: 3 })}
+                active={active?.h3}
                 disabled={!editor}
                 onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
               >

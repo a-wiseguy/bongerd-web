@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { count, eq } from 'drizzle-orm'
+import { count, eq, sql } from 'drizzle-orm'
 import { db } from './db'
 import {
   announcements,
@@ -12,6 +12,7 @@ import {
   userRoles,
   users,
 } from './schema'
+import { locationSeed } from './practice'
 
 function requiredEnv(name: string) {
   const value = process.env[name]
@@ -19,50 +20,6 @@ function requiredEnv(name: string) {
   return value
 }
 
-const locationSeed = [
-  {
-    slug: 'kesteren',
-    name: 'Kesteren',
-    address: 'Hoofdstraat 29',
-    postal: '4041 AA',
-    city: 'Kesteren',
-    phone: '0488 482 133',
-    phoneTel: '+31488482133',
-    email: 'info@apotheekdebongerd.nl',
-    zorgmail: 'apotheekdebongerd@zorgmail.nl',
-    mapsQuery: 'Hoofdstraat 29, 4041 AA Kesteren',
-    sortOrder: 1,
-    close: '17:00',
-  },
-  {
-    slug: 'ochten',
-    name: 'Ochten',
-    address: 'Burgemeester Houtkoperlaan 3',
-    postal: '4051 EW',
-    city: 'Ochten',
-    phone: '0344 642 300',
-    phoneTel: '+31344642300',
-    email: 'info@apotheekdebongerd.nl',
-    zorgmail: 'apotheekdebongerd@zorgmail.nl',
-    mapsQuery: 'Burgemeester Houtkoperlaan 3, 4051 EW Ochten',
-    sortOrder: 2,
-    close: '17:30',
-  },
-  {
-    slug: 'rhenen',
-    name: 'Rhenen',
-    address: 'Valleiweg 10',
-    postal: '3911 DD',
-    city: 'Rhenen',
-    phone: '0317 796 000',
-    phoneTel: '+31317796000',
-    email: 'info@apotheekdebongerd.nl',
-    zorgmail: 'apotheekdebongerdrhenen@zorgmail.nl',
-    mapsQuery: 'Valleiweg 10, 3911 DD Rhenen',
-    sortOrder: 3,
-    close: '17:30',
-  },
-] as const
 
 const contentSeed = [
   {
@@ -314,7 +271,10 @@ async function seed() {
     if (existing[0]) {
       await db
         .update(users)
-        .set({ passwordHash: await bcrypt.hash(adminPassword, 12) })
+        .set({
+          passwordHash: await bcrypt.hash(adminPassword, 12),
+          sessionVersion: sql`${users.sessionVersion} + 1`,
+        })
         .where(eq(users.id, existing[0].id))
       console.log(`admin password reset: ${adminEmail}`)
     } else {

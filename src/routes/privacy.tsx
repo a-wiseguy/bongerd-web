@@ -1,40 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageHero, Prose } from '@/components/PageHero'
-import { blockImage, blockMap, heading, text } from '@/lib/format'
-import { photos } from '@/lib/images'
-import { seo } from '@/lib/seo'
+import { blockMap, heading, text } from '@/lib/format'
+import { pageHead } from '@/lib/seo'
 import { getPageBlocks } from '@/server/public'
 
 export const Route = createFileRoute('/privacy')({
   loader: () => getPageBlocks({ data: 'privacy' }),
-  head: () => ({
-    meta: seo({
+  head: (ctx) =>
+    pageHead(ctx, {
       title: 'Privacy',
-      description: 'Privacybeleid van Apotheek De Bongerd.',
+      description: 'Privacybeleid van Apotheek De Bongerd: welke gegevens wij verwerken, waarom en wat uw rechten zijn.',
+      path: '/privacy',
     }),
-  }),
   component: PrivacyPage,
 })
 
 function PrivacyPage() {
-  const blocks = Route.useLoaderData()
-  const copy = blockMap(blocks)
-  const hero = blockImage(copy, 'privacy.intro', photos.privacy)
+  const copy = blockMap(Route.useLoaderData())
   return (
     <div>
-      <PageHero
-        kicker="Gegevens"
-        title={heading(copy, 'privacy.intro', 'Privacy')}
-        image={hero.src}
-        imageAlt={hero.alt}
-      />
+      <PageHero kicker="Uw gegevens" title={heading(copy, 'privacy.intro', 'Privacy')} />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <div className="overflow-hidden rounded-[1.8rem] border border-line bg-white">
-          <img src={photos.consult.src} alt={photos.consult.alt} className="h-48 w-full object-cover" />
-          <div className="p-6 sm:p-8 text-muted">
-            <Prose text={text(copy, 'privacy.intro')} />
-          </div>
-        </div>
+        <article className="rounded-[1.8rem] border border-line bg-white p-6 text-ink sm:p-10">
+          <Prose html={text(copy, 'privacy.intro')} />
+        </article>
       </div>
     </div>
   )

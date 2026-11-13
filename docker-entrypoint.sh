@@ -16,9 +16,8 @@ until su-exec app node --input-type=module -e "import mysql from 'mysql2/promise
   sleep 1
 done
 
-echo "applying schema..."
-# drizzle-kit push stays in the image for boot-time migrate; prefer not shipping forever if you move migrations out
-su-exec app ./node_modules/.bin/drizzle-kit push --force
+echo "applying migrations..."
+su-exec app ./node_modules/.bin/tsx src/lib/migrate.ts
 
 echo "seeding..."
 su-exec app ./node_modules/.bin/tsx src/lib/seed.ts
