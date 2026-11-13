@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ghostBtn } from '@/components/AdminShell'
 import { limits, uploadLimits } from '@/lib/limits'
+import { signalChange } from './AdminForm'
 import { staffErrorMessage } from '@/lib/formErrors'
 import { uploadImage } from '@/server/admin'
 
@@ -23,6 +24,7 @@ export function ImageField({
   const [alt, setAlt] = useState(defaultAlt ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const box = useRef<HTMLDivElement>(null)
 
   const onFile = async (file: File | null) => {
     if (!file) return
@@ -43,10 +45,11 @@ export function ImageField({
   const onDelete = () => {
     setUrl('')
     setError('')
+    signalChange(box.current)
   }
 
   return (
-    <div className="grid gap-2 rounded-2xl border border-line bg-mist/40 p-4">
+    <div ref={box} className="grid gap-2 rounded-2xl border border-line bg-mist/40 p-4">
       <p className="text-sm font-semibold text-navy">{label}</p>
       {url ? (
         <img src={url} alt={alt || ''} className="h-40 w-full rounded-xl object-cover" />

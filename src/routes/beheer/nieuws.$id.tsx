@@ -63,6 +63,7 @@ function NewsEditor() {
       <AdminForm
         className="mt-6"
         statusAtButton
+        warnUnsaved
         success={post ? 'Opgeslagen.' : 'Bericht aangemaakt.'}
         onSave={async (data) => {
           const result = await saveNews({

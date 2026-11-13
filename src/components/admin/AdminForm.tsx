@@ -1,10 +1,30 @@
-import { createContext, useContext, useState, type FormEvent, type ReactNode } from 'react'
-import { useHydrated } from '@tanstack/react-router'
+import { createContext, useContext, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useBlocker, useHydrated } from '@tanstack/react-router'
 import { btnClass, ghostBtn } from '@/components/AdminShell'
 import { staffErrorMessage } from '@/lib/formErrors'
 
-type FormState = { busy: boolean; status: 'idle' | 'busy' | 'ok' | 'error'; message: string; atButton: boolean }
-const FormContext = createContext<FormState>({ busy: false, status: 'idle', message: '', atButton: false })
+type FormState = {
+  busy: boolean
+  status: 'idle' | 'busy' | 'ok' | 'error'
+  message: string
+  atButton: boolean
+  /** returns a restore fn, for actions that leave the page on purpose */
+  discardChanges: () => () => void
+}
+const FormContext = createContext<FormState>({
+  busy: false,
+  status: 'idle',
+  message: '',
+  atButton: false,
+  discardChanges: () => () => {},
+})
+
+const UNSAVED_PROMPT = 'Er zijn wijzigingen die nog niet zijn opgeslagen. Wilt u de pagina toch verlaten?'
+
+/** for widgets that set hidden inputs: lets the form see the change */
+export function signalChange(element: Element | null | undefined) {
+  element?.dispatchEvent(new Event('input', { bubbles: true }))
+}
 
 export function AdminForm({
   id,
@@ -13,6 +33,7 @@ export function AdminForm({
   failure = 'Opslaan mislukt. Controleer de velden en probeer het opnieuw.',
   statusClassName,
   statusAtButton = false,
+  warnUnsaved = false,
   onSave,
   children,
 }: {
@@ -23,25 +44,47 @@ export function AdminForm({
   statusClassName?: string
   /** long forms: show feedback under the save button, not at the bottom */
   statusAtButton?: boolean
+  warnUnsaved?: boolean
   onSave: (data: FormData, form: HTMLFormElement) => Promise<void>
   children: ReactNode
 }) {
   const [status, setStatus] = useState<'idle' | 'busy' | 'ok' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  // ref, not state: onSave may navigate before a re-render
+  const dirty = useRef(false)
+
+  useBlocker({
+    shouldBlockFn: () => warnUnsaved && dirty.current && !window.confirm(UNSAVED_PROMPT),
+    enableBeforeUnload: () => warnUnsaved && dirty.current,
+  })
+
+  const discardChanges = () => {
+    const was = dirty.current
+    dirty.current = false
+    return () => {
+      dirty.current = was
+    }
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = event.currentTarget
     setStatus('busy')
     setMessage('')
+    const restore = discardChanges()
     try {
       await onSave(new FormData(form), form)
       setStatus('ok')
       setMessage(success)
     } catch (error) {
+      restore()
       setStatus('error')
       setMessage(staffErrorMessage(error, failure))
     }
+  }
+
+  const markDirty = () => {
+    dirty.current = true
   }
 
   return (
@@ -51,8 +94,12 @@ export function AdminForm({
       className={`grid gap-3 ${className ?? ''}`}
       aria-busy={status === 'busy' || undefined}
       onSubmit={onSubmit}
+      onInput={markDirty}
+      onChange={markDirty}
     >
-      <FormContext.Provider value={{ busy: status === 'busy', status, message, atButton: statusAtButton }}>
+      <FormContext.Provider
+        value={{ busy: status === 'busy', status, message, atButton: statusAtButton, discardChanges }}
+      >
         <div className={`grid gap-3 ${status === 'busy' ? 'opacity-70' : ''}`}>{children}</div>
         {statusAtButton ? null : <FormStatus status={status} message={message} className={statusClassName} />}
       </FormContext.Provider>
@@ -111,7 +158,7 @@ export function DeleteButton({
   onConfirm: () => Promise<void>
   confirmText?: string
 }) {
-  const formBusy = useContext(FormContext).busy
+  const { busy: formBusy, discardChanges } = useContext(FormContext)
   const [armed, setArmed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -138,9 +185,11 @@ export function DeleteButton({
           onClick={async () => {
             setBusy(true)
             setError('')
+            const restore = discardChanges()
             try {
               await onConfirm()
             } catch (err) {
+              restore()
               setError(staffErrorMessage(err, 'Verwijderen mislukt. Probeer het opnieuw.'))
               setBusy(false)
             }

@@ -62,6 +62,7 @@ function ServiceEditor() {
       <AdminForm
         className="mt-6"
         statusAtButton
+        warnUnsaved
         success={service ? 'Opgeslagen.' : 'Dienst aangemaakt.'}
         onSave={async (data) => {
           const result = await saveService({

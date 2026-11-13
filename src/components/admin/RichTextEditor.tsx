@@ -3,6 +3,7 @@ import StarterKit from '@tiptap/starter-kit'
 import CharacterCount from '@tiptap/extension-character-count'
 import { useEffect, useId, useState } from 'react'
 import { plainToParagraphs } from '@/lib/html'
+import { signalChange } from './AdminForm'
 
 type Props = {
   name: string
@@ -79,8 +80,9 @@ export function RichTextEditor({ name, defaultValue = '', maxLength, compact, la
         'aria-labelledby': `${reactId}-label`,
       },
     },
-    onUpdate: ({ editor: ed }) => {
+    onUpdate: ({ editor: ed, transaction }) => {
       setHtml(ed.getHTML())
+      if (transaction.docChanged) signalChange(ed.view.dom)
       setCount(ed.storage.characterCount.characters())
     },
     onCreate: ({ editor: ed }) => {
