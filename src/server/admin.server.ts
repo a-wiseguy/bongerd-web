@@ -160,20 +160,19 @@ export async function saveAnnouncementImpl(data: {
   title: string
   body: string
   published: boolean
+  visibleUntil: string | null
 }) {
   await requireAdmin()
-  const body = toSafeHtml(data.body)
+  const fields = {
+    title: data.title,
+    body: toSafeHtml(data.body),
+    published: data.published,
+    visibleUntil: data.visibleUntil,
+  }
   if (data.id) {
-    await db
-      .update(announcements)
-      .set({ title: data.title, body, published: data.published })
-      .where(eq(announcements.id, data.id))
+    await db.update(announcements).set(fields).where(eq(announcements.id, data.id))
   } else {
-    await db.insert(announcements).values({
-      title: data.title,
-      body,
-      published: data.published,
-    })
+    await db.insert(announcements).values(fields)
   }
   return { ok: true }
 }

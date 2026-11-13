@@ -95,13 +95,19 @@ export function Field({
   )
 }
 
-export function PublishField({ defaultChecked = true }: { defaultChecked?: boolean }) {
+export function PublishField({
+  defaultChecked = true,
+  hint = 'Uitvinken haalt het weg voor bezoekers.',
+}: {
+  defaultChecked?: boolean
+  hint?: string
+}) {
   return (
     <label className="flex items-start gap-3 rounded-2xl border border-line bg-paper px-4 py-3">
       <input name="published" type="checkbox" defaultChecked={defaultChecked} className="mt-1 h-4 w-4 accent-navy" />
       <span>
         <span className="block text-sm font-semibold text-navy">Zichtbaar op de site</span>
-        <span className="block text-sm text-muted">Uitvinken haalt het weg voor bezoekers.</span>
+        <span className="block text-sm text-muted">{hint}</span>
       </span>
     </label>
   )

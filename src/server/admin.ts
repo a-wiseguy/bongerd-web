@@ -125,6 +125,10 @@ export const saveAnnouncement = createServerFn({ method: 'POST' })
       title: titleSchema,
       body: richText(limits.announcementBody, htmlLimits.announcementBody),
       published: z.boolean(),
+      visibleUntil: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Kies een geldige datum.')
+        .nullable(),
     }),
   )
   .handler(async ({ data }) => {

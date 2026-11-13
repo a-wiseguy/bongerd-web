@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { Field, fieldClass } from '@/components/AdminShell'
+import { Field, PublishField, fieldClass } from '@/components/AdminShell'
 import { AdminForm, DeleteButton, SaveButton } from '@/components/admin/AdminForm'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
@@ -113,18 +113,7 @@ function ServiceEditor() {
 
           <aside className="grid gap-4 rounded-[1.5rem] border border-line bg-white p-5 lg:sticky lg:top-6">
             <h2 className="font-serif text-2xl text-navy">Publicatie</h2>
-            <label className="flex items-start gap-3 rounded-2xl border border-line bg-paper px-4 py-3">
-              <input
-                name="published"
-                type="checkbox"
-                defaultChecked={service?.published ?? true}
-                className="mt-1 h-4 w-4 accent-navy"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-navy">Zichtbaar op de site</span>
-                <span className="block text-sm text-muted">Volgorde wijzigt u in het overzicht.</span>
-              </span>
-            </label>
+            <PublishField defaultChecked={service?.published ?? true} hint="Volgorde wijzigt u in het overzicht." />
             <SaveButton className="min-h-12 w-full rounded-full bg-navy px-5 font-semibold text-white disabled:opacity-60">
               {service ? 'Opslaan' : 'Dienst aanmaken'}
             </SaveButton>

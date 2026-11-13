@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { Field, fieldClass } from '@/components/AdminShell'
+import { Field, PublishField, fieldClass } from '@/components/AdminShell'
 import { AdminForm, DeleteButton, SaveButton } from '@/components/admin/AdminForm'
 import { ImageField } from '@/components/admin/ImageField'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
@@ -119,18 +119,7 @@ function NewsEditor() {
                 className={fieldClass}
               />
             </Field>
-            <label className="flex items-start gap-3 rounded-2xl border border-line bg-paper px-4 py-3">
-              <input
-                name="published"
-                type="checkbox"
-                defaultChecked={post?.published ?? true}
-                className="mt-1 h-4 w-4 accent-navy"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-navy">Zichtbaar op de site</span>
-                <span className="block text-sm text-muted">Uitvinken verbergt het bericht zonder het te verwijderen.</span>
-              </span>
-            </label>
+            <PublishField defaultChecked={post?.published ?? true} hint="Uitvinken verbergt het bericht zonder het te verwijderen." />
             <SaveButton className="min-h-12 w-full rounded-full bg-navy px-5 font-semibold text-white disabled:opacity-60">
               {post ? 'Opslaan' : 'Bericht aanmaken'}
             </SaveButton>
