@@ -15,6 +15,5 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      # audit production deps only; drizzle-kit (used at container boot) can pull
-      # moderate transitive noise (e.g. esbuild) that we do not force-fix
+      # prod deps only; dev tooling (drizzle-kit, vite) is not shipped
       - run: npm audit --omit=dev --audit-level=high

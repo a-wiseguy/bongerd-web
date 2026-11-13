@@ -1,7 +1,7 @@
 {
   "name": "Apotheek de Bongerd",
   "user": "ubuntu",
-  "install": "bash .cursor/dev-setup.sh && npm ci && set -a && . ./.env && set +a && npm run db:push && npm run db:seed",
+  "install": "bash .cursor/dev-setup.sh && npm ci && set -a && . ./.env && set +a && npm run db:migrate && npm run db:seed",
   "start": "bash .cursor/dev-setup.sh",
   "terminals": [
     {

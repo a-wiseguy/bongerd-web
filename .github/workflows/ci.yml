@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root
+          MYSQL_DATABASE: bongerd
+          MYSQL_USER: bongerd
+          MYSQL_PASSWORD: ci-pass
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-root"
+          --health-interval=3s --health-timeout=3s --health-retries=30
+    env:
+      DATABASE_URL: mysql://bongerd:ci-pass@127.0.0.1:3306/bongerd
+      ADMIN_EMAIL: ci@example.com
+      ADMIN_PASSWORD: ci-admin-password-123
+      SESSION_SECRET: ci-session-secret-with-at-least-32-chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # twice: second run must be a no-op (container restarts)
+      - run: npm run db:migrate && npm run db:seed && npm run db:migrate && npm run db:seed
+      - name: schema matches migrations
+        run: npx drizzle-kit generate --name ci-check | tee /tmp/gen.log && grep -q "No schema changes" /tmp/gen.log

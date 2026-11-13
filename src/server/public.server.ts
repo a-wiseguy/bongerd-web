@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import {
   announcements,
@@ -15,6 +15,15 @@ import { toSafeHtml } from '@/lib/sanitize.server'
 
 export function siteUrl() {
   return (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
+}
+
+export async function checkDatabase() {
+  await db.execute(sql`select 1`)
+}
+
+// future publishedAt = scheduled post
+function liveNews() {
+  return and(eq(newsPosts.published, true), lte(newsPosts.publishedAt, new Date()))
 }
 
 function withSafeBody<T extends { body: string }>(rows: T[]) {
@@ -55,7 +64,7 @@ export async function getPublishedNewsImpl() {
       publishedAt: newsPosts.publishedAt,
     })
     .from(newsPosts)
-    .where(eq(newsPosts.published, true))
+    .where(liveNews())
     .orderBy(desc(newsPosts.publishedAt))
 }
 
@@ -63,7 +72,7 @@ export async function getNewsBySlugImpl(slug: string) {
   const [post] = await db
     .select()
     .from(newsPosts)
-    .where(and(eq(newsPosts.slug, slug), eq(newsPosts.published, true)))
+    .where(and(eq(newsPosts.slug, slug), liveNews()))
     .limit(1)
   return post ? { ...post, body: toSafeHtml(post.body) } : null
 }
@@ -107,7 +116,12 @@ export async function getHomeDataImpl() {
     db
       .select()
       .from(announcements)
-      .where(eq(announcements.published, true))
+      .where(
+        and(
+          eq(announcements.published, true),
+          or(isNull(announcements.visibleUntil), gte(announcements.visibleUntil, amsterdamNow().date)),
+        ),
+      )
       .orderBy(asc(announcements.sortOrder), desc(announcements.createdAt)),
     db
       .select({
@@ -133,7 +147,7 @@ export async function getHomeDataImpl() {
         publishedAt: newsPosts.publishedAt,
       })
       .from(newsPosts)
-      .where(eq(newsPosts.published, true))
+      .where(liveNews())
       .orderBy(desc(newsPosts.publishedAt))
       .limit(3),
     loadHoursBundle(),

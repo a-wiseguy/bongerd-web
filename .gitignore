@@ -7,7 +7,6 @@ dist
 .env
 *.log
 .DS_Store
-drizzle
 routeTree.gen.ts
 src/routeTree.gen.ts
 data/uploads/*
