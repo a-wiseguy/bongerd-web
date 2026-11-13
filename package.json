@@ -17,8 +17,8 @@
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.3.1",
     "@fontsource/cormorant-garamond": "^5.3.0",
-    "@tanstack/react-router": "^1.170.32",
-    "@tanstack/react-start": "^1.168.49",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-start": "^1.169.5",
     "@tiptap/extension-character-count": "^3.30.5",
     "@tiptap/pm": "^3.30.5",
     "@tiptap/react": "^3.30.5",
@@ -30,7 +30,7 @@
     "nodemailer": "^10.5.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "sanitize-html": "^2.17.7",
+    "sanitize-html": "^2.18.2",
     "sharp": "^0.35.5",
     "tsx": "^4.23.12",
     "zod": "^4.4.3"
