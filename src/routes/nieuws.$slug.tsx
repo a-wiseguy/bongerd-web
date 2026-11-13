@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { NotFound } from '@/components/NotFound'
 import { PageHero, Prose } from '@/components/PageHero'
 import { formatNlDate } from '@/lib/format'
-import { newsImage, photos } from '@/lib/images'
+import { newsImage } from '@/lib/images'
 import { pageHead } from '@/lib/seo'
 import { getNewsBySlug } from '@/server/public'
 
@@ -25,19 +26,18 @@ export const Route = createFileRoute('/nieuws/$slug')({
     })
   },
   component: NewsDetail,
+  notFoundComponent: () => <NotFound title="Dit nieuwsbericht is niet (meer) beschikbaar" />,
 })
 
 function NewsDetail() {
   const post = Route.useLoaderData()
-  const photo = newsImage(post, photos.storefront)
   return (
     <div>
       <PageHero
-        kicker={formatNlDate(post.publishedAt)}
+        kicker={`Nieuws · ${formatNlDate(post.publishedAt)}`}
         title={post.title}
         leadText={post.excerpt}
-        image={photo.src}
-        imageAlt={photo.alt}
+        image={post.imageUrl ? newsImage(post, 0) : undefined}
       />
       <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <div className="overflow-hidden rounded-[1.8rem] border border-line bg-white">

@@ -9,6 +9,7 @@ import {
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
 import { MobileBar } from '@/components/MobileBar'
+import { NotFound } from '@/components/NotFound'
 import { getSiteShell } from '@/server/public'
 import { pageHead } from '@/lib/seo'
 import appCss from '@/styles.css?url'
@@ -31,27 +32,17 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap',
-        },
-        { rel: 'icon', href: '/favicon.png', type: 'image/png' },
-        { rel: 'apple-touch-icon', href: '/favicon.png' },
+        { rel: 'icon', href: '/favicon.ico', sizes: '32x32' },
+        { rel: 'icon', href: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
         ...links,
       ],
     }
   },
   component: RootComponent,
   errorComponent: RootError,
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-xl px-4 py-20">
-      <h1 className="font-serif text-4xl text-navy">Pagina niet gevonden</h1>
-      <p className="mt-3 text-muted">Deze pagina bestaat niet. Ga terug naar home of gebruik het menu.</p>
-      <a href="/" className="mt-6 inline-flex min-h-12 items-center rounded-full bg-navy px-5 font-semibold text-white">
-        Naar home
-      </a>
-    </div>
-  ),
+  notFoundComponent: () => <NotFound />,
 })
 
 function RootComponent() {

@@ -1,33 +1,5 @@
-export function Photo({
-  src,
-  alt,
-  caption,
-  className = '',
-  imgClass = 'h-52 sm:h-72',
-  eager = false,
-}: {
-  src: string
-  alt: string
-  caption?: string
-  className?: string
-  imgClass?: string
-  eager?: boolean
-}) {
-  return (
-    <figure className={className}>
-      <img
-        src={src}
-        alt={alt}
-        width={1600}
-        height={1000}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        className={`w-full rounded-[1.6rem] object-cover ${imgClass}`}
-      />
-      {caption ? <figcaption className="mt-2 text-sm text-muted">{caption}</figcaption> : null}
-    </figure>
-  )
-}
+import { Img } from '@/components/Img'
+import type { SiteImage } from '@/lib/images'
 
 export function OpenBadge({ open, label, detail }: { open: boolean; label: string; detail?: string }) {
   return (
@@ -45,15 +17,13 @@ export function PageHero({
   lead,
   leadText,
   image,
-  imageAlt,
   children,
 }: {
   kicker?: string
   title: string
   lead?: string
   leadText?: string
-  image?: string
-  imageAlt?: string
+  image?: SiteImage
   children?: React.ReactNode
 }) {
   return (
@@ -65,13 +35,10 @@ export function PageHero({
         {leadText ? <p className="mt-4 max-w-2xl text-lg text-muted">{leadText}</p> : null}
         {children}
         {image ? (
-          <img
-            src={image}
-            alt={imageAlt ?? ''}
-            width={1600}
-            height={1000}
-            fetchPriority="high"
-            decoding="async"
+          <Img
+            image={image}
+            priority
+            sizes="(min-width: 1152px) 1104px, 100vw"
             className="mt-8 h-52 w-full rounded-[1.8rem] object-cover shadow-card sm:h-80"
           />
         ) : null}
@@ -80,7 +47,7 @@ export function PageHero({
   )
 }
 
-/** html must come from the server (sanitize.server.ts) */
+// html must be sanitized server-side (sanitize.server.ts)
 export function Prose({ html, className = 'max-w-3xl' }: { html: string; className?: string }) {
   return <div className={`prose-site ${className}`} dangerouslySetInnerHTML={{ __html: html }} />
 }

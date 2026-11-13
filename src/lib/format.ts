@@ -23,29 +23,6 @@ export function heading(map: Record<string, ContentBlock>, key: string, fallback
   return map[key]?.title || fallback
 }
 
-export function blockImage(
-  map: Record<string, ContentBlock>,
-  key: string,
-  fallback: { src: string; alt: string },
-) {
-  const block = map[key]
-  if (block?.imageUrl) {
-    return { src: block.imageUrl, alt: block.imageAlt || fallback.alt }
-  }
-  return fallback
-}
-
-export function paragraphs(value: string) {
-  return value
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-}
-
-export function phoneHref(value: string) {
-  return `tel:${value.replace(/[^\d+]/g, '')}`
-}
-
 export function mapsHref(query: string) {
   return `https://maps.google.com/?q=${encodeURIComponent(query)}`
 }
@@ -58,6 +35,17 @@ export function formatNlDate(value: Date | string) {
     month: 'long',
     year: 'numeric',
   }).format(date)
+}
+
+/** yyyy-mm-dd calendar date → "donderdag 25 december" */
+export function formatNlDay(value: string, withYear = false) {
+  return new Intl.DateTimeFormat('nl-NL', {
+    timeZone: 'UTC',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: withYear ? 'numeric' : undefined,
+  }).format(new Date(`${value.slice(0, 10)}T00:00:00Z`))
 }
 
 export function slugify(value: string, fallback = 'item') {

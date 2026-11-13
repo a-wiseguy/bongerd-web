@@ -1,7 +1,12 @@
 @import "tailwindcss";
+@import "@fontsource-variable/source-sans-3/wght.css";
+@import "@fontsource-variable/source-sans-3/wght-italic.css";
+@import "@fontsource/cormorant-garamond/latin-500.css";
+@import "@fontsource/cormorant-garamond/latin-600.css";
+@import "@fontsource/cormorant-garamond/latin-700.css";
 
 @theme {
-  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Source Sans 3 Variable", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
   --color-navy: #001689;
   --color-navy-deep: #00115c;
@@ -128,7 +133,10 @@ body {
   outline: none;
 }
 
-.bg-navy .prose-site a {
+.bg-navy .prose-site a,
+.bg-navy .prose-site h2,
+.bg-navy .prose-site h3,
+.bg-navy .prose-site strong {
   color: #fff;
 }
 
@@ -137,12 +145,19 @@ body {
 }
 
 .card-link {
-  transition: border-color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .card-link:hover {
-    border-color: color-mix(in srgb, var(--color-navy) 32%, var(--color-line));
+.card-link:hover {
+  border-color: color-mix(in srgb, var(--color-navy) 32%, var(--color-line));
+  box-shadow: 0 16px 36px -20px rgb(0 22 137 / 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-link {
+    transition: none;
   }
 }
 
